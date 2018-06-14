@@ -1,0 +1,50 @@
+body {
+  margin: 0;
+}
+
+#content {
+  overflow: hidden; /* clear the content/layouts */
+}
+
+.title-block {
+  margin: 1em 0 0 1%;
+  display: block;
+}
+
+.container {
+  position: relative;
+  float: left;
+  border: 1px solid black;
+  min-height: 64px;
+  /* margin: -- specify .full or .half */
+  /* width: -- specify .full or .half */
+}
+
+.container.full {
+  margin: 1em 1% 0 1%;
+  width: 98%;
+}
+
+.container.half {
+  margin: 1em 0 0 1%;
+  width: 48.25%; /* can't use 48.5% due to container borders */
+}
+
+.container.half:last-child {
+  margin-right: 1%;
+}
+
+.container-label {
+  position: absolute;
+  border: 0px solid black;
+  width: 8em;
+  top: -.6em;
+  left: 2em;
+  background-color: white;
+  text-align: center
+}
+
+.myTimeline {
+  margin: 1em 0 0 1em;
+}
+
