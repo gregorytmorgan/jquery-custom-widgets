@@ -56,10 +56,11 @@ $.widget("custom.timeline", {
    */
   _create: function () {
 
-    this.element.addClass("timeline");
+
+//this.element.addClass('timeline');
 
     // chart container
-    this._container = $('<div class="timeline-container"></div>').appendTo(this.element);
+    this._container = $('<div class="timeline"></div>').appendTo(this.element);
 
     this.element.text("Initializing ...");
   },
