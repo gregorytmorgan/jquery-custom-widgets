@@ -1,18 +1,53 @@
 <!DOCTYPE html>
 <!--
-JQuery Custom Widget Tests
+jQuery Timeline-control Widget Tests
 -->
 <html>
   <head>
-    <title>JQuery Custom Widget Tests</title>
+    <title>jQuery Custom Widget Tests</title>
     <link rel="icon" href="favicon.ico" sizes="16x16 32x32 48x48 64x64 96x96 128x128" type="image/x-icon">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="index.css">
-    <script src=" https://code.jquery.com/jquery-3.3.1.min.js"></script>
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="timeline-control.css">
+    <script src=" https://code.jquery.com/jquery-3.3.1.min.js"></script><!-- todo: create bundle -->
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script><!-- todo: create bundle -->
+    <script src="https://d3js.org/d3.v5.min.js"></script><!-- ToDo: create bundle -->
     <script src="timeline.1.js"></script>
     <script>
+
+let testDataN = [];
+
+// Math.random() * (max - min) + min;
+let sz = Math.round(Math.random() * (100 - 10) + 10);
+
+for (i = 0; i < sz; i +=1) {
+  testDataN[i] = {
+    'key': Math.round(Math.random() * (1000 - 10) + 10),
+    'value': i
+  };
+}
+
+let testData5 = [
+  {'key':-1, 'value': 1},
+  {'key':2, 'value': 2},
+  {'key':3, 'value': 3},
+  {'key':4, 'value': 4},
+  {'key':5, 'value': 5}
+]
+
+let testData10 = [
+  {'key':1, 'value': 1},
+  {'key':2, 'value': 2},
+  {'key':3, 'value': 3},
+  {'key':3, 'value': 4},
+  {'key':9, 'value': 5},
+  {'key':8, 'value': 6},
+  {'key':7, 'value': 7},
+  {'key':6, 'value': 8},
+  {'key':5, 'value': 9},
+  {'key':3, 'value': 10}
+]
 
       /*
        * On load handler
@@ -34,27 +69,19 @@ JQuery Custom Widget Tests
         // alternate widget initialization syntax
         // var bar = $.custom.progressbar({}, $("<div></div>").appendTo("body"));
 
-        // create the dom element that is the root of the widget. Could just use the
-        // container itself?
-      //        let tlElement = $("<div></div>");
-      //
-      //        // construct a timeline widget in the container2 element. We pass
-      //        // in two custom handlers for the atstart' and 'atend' custom events
-      //        tlElement.appendTo("#container2").timeline({
-      //          // override the widgets default initial value.
-      //          value: 20,
-      //
-      //          // override the widgets default handler for the custom atstart event
-      //          atstart: function (event, data) {
-      //            console.log('Custom event atStart handler defined at initialization.');
-      //          }
-      //        });
+        let widgetElement = $("#widgetElement1");
 
-
-        let con = $("#container2");
-        con.timeline({
+        // construct a timeline widget in the widgetElement2 element. We pass
+        // in a custom handler for the atstart' custom event.
+        widgetElement.timeline({
           // override the widgets default initial value.
           value: 20,
+
+          // the widget defaults to using the widgetElement height, which is not set,
+          // so provide an explict height.
+          height: '48px',
+
+          data: testData10,
 
           // override the widgets default handler for the custom atstart event
           atstart: function (event, data) {
@@ -62,62 +89,39 @@ JQuery Custom Widget Tests
           }
         });
 
-return;
+        // Alternate way of calling widget methods by calling object and passing in func name
+        //console.log("Initial value: " + widgetElement.timeline("value"));
 
-        // Hack way to call method, by calling object and passing in func name
-        console.log("Initial value: " + tlElement.timeline("value"));
-
-        // Alternate way of calling widget methods
-        let myTimeline = tlElement.data("custom-timeline");
-        myTimeline.value(25);
-        console.log("Set the value to 25. Value: " + myTimeline.value());
+        let myTimeline = widgetElement.data("custom-timeline");
 
         // Notes:
-        // 1) custom handlers are called before the default.
+        // 1) Custom handlers are called before the default.
         // 2) Returning false or using stopImmediatePropagation(), stopPropagation()
         // and preventDefault() does not seem to stop the default handler from firing?
-        // 3) Note the closure. the hander doesn't have a widget context?
-        tlElement.bind("timelinechange", function (event, data) {
-          console.log("Custom change handler. Value is " + data.value);
+        // 3) Note the closure. hander doesn't have a wy to pass in a widget context?
+        widgetElement.bind("timelinechange", function (event, data) {
+          console.log("User defined change handler. Key is " + data.key  + ", Value is " + data.value);
 
           if (data.value === 0) {
-            myTimeline._trigger("atstart", null, {value: 0});
-          } else if (data.value === 100) {
-            myTimeline._trigger("atend", null, {value: 100});
+            myTimeline._trigger("atstart", null, {'key': 'atstart', 'value': 0});
           }
         });
 
-        myTimeline.value(0);
-        console.log("Set the value to 0. Value: " + myTimeline.value());
-
-        myTimeline.value(100);
-        console.log("Set the value to 100. Value: " + myTimeline.value());
       });
 
   </script>
-
-
-
-
   </head>
   <body>
     <div id="content">
       <div class="title-block">
-        <h1>jQuery Custom Widget Tests</h1>
+        <h1>Timeline Control Widget Test</h1>
       </div>
 
-      <div id="container1" class="container half">
-        <div class="container-label">
-          Container #1
-        </div>
-      </div>
+      <div id="widgetElement1" class="widgetElement full"></div>
 
-      <div id="container2" class="container half">
-        <div class="container-label">
-          Container #2
-        </div>
-      </div>
+    </div><!-- content -->
 
-    </div> <!-- content -->
+    <div id="debugConsole"></div>
+
   </body>
 </html>

@@ -11,40 +11,42 @@ body {
   display: block;
 }
 
-.container {
+.widgetElement {
+  overflow: hidden;
   position: relative;
   float: left;
   border: 1px solid black;
-  min-height: 64px;
+  min-height: 16px;
+  /* height: 36px; */
   /* margin: -- specify .full or .half */
   /* width: -- specify .full or .half */
 }
 
-.container.full {
+.widgetElement.full {
   margin: 1em 1% 0 1%;
   width: 98%;
 }
 
-.container.half {
+.widgetElement.half {
   margin: 1em 0 0 1%;
-  width: 48.25%; /* can't use 48.5% due to container borders */
+  width: 48.25%; /* can't use 48.5% due to widgetElement borders */
 }
 
-.container.half:last-child {
+.widgetElement.half:last-child {
   margin-right: 1%;
-}
-
-.container-label {
-  position: absolute;
-  border: 0px solid black;
-  width: 8em;
-  top: -.6em;
-  left: 2em;
-  background-color: white;
-  text-align: center
 }
 
 .myTimeline {
   margin: 1em 0 0 1em;
 }
 
+#debugConsole {
+  overflow: hidden;
+  position: fixed;
+  bottom: 12px;
+  left: 0px;
+  width: 98%;
+  min-height: 1em;
+  border: 1px solid silver;
+  margin: 1%;
+}
