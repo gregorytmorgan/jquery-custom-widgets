@@ -16,38 +16,49 @@ jQuery Timeline-control Widget Tests
     <script src="timeline.1.js"></script>
     <script>
 
-let testDataN = [];
+      let testDataN = [];
 
-// Math.random() * (max - min) + min;
-let sz = Math.round(Math.random() * (100 - 10) + 10);
+      // Math.random() * (max - min) + min;
+      let sz = Math.round(Math.random() * (100 - 10) + 10);
 
-for (i = 0; i < sz; i +=1) {
-  testDataN[i] = {
-    'key': Math.round(Math.random() * (1000 - 10) + 10),
-    'value': i
-  };
-}
+      for (i = 0; i < sz; i +=1) {
+        testDataN[i] = {
+          'key': Math.round(Math.random() * (1000 - 10) + 10),
+          'value': i
+        };
+      }
 
-let testData5 = [
-  {'key':-1, 'value': 1},
-  {'key':2, 'value': 2},
-  {'key':3, 'value': 3},
-  {'key':4, 'value': 4},
-  {'key':5, 'value': 5}
-]
+      let testData1 = [
+        {'key':-1, 'value': 1}
+      ];
 
-let testData10 = [
-  {'key':1, 'value': 1},
-  {'key':2, 'value': 2},
-  {'key':3, 'value': 3},
-  {'key':3, 'value': 4},
-  {'key':9, 'value': 5},
-  {'key':8, 'value': 6},
-  {'key':7, 'value': 7},
-  {'key':6, 'value': 8},
-  {'key':5, 'value': 9},
-  {'key':3, 'value': 10}
-]
+      let testData5 = [
+        {'key':1, 'value': 1},
+        {'key':2, 'value': 2},
+        {'key':3, 'value': 3},
+        {'key':4, 'value': 4},
+        {'key':5, 'value': 5}
+      ]
+
+      let testData10 = [
+        {'key':1, 'value': 1},
+        {'key':2, 'value': 2},
+        {'key':3, 'value': 3},
+        {'key':3, 'value': 4},
+        {'key':9, 'value': 5},
+        {'key':8, 'value': 6},
+        {'key':7, 'value': 7},
+        {'key':6, 'value': 8},
+        {'key':5, 'value': 9},
+        {'key':3, 'value': 10}
+      ]
+
+      let dataSets =[
+        testDataN,
+        testData1,
+        testData5,
+        testData10
+      ]
 
       /*
        * On load handler
@@ -74,19 +85,12 @@ let testData10 = [
         // construct a timeline widget in the widgetElement2 element. We pass
         // in a custom handler for the atstart' custom event.
         widgetElement.timeline({
-          // override the widgets default initial value.
-          value: 20,
-
           // the widget defaults to using the widgetElement height, which is not set,
           // so provide an explict height.
           height: '48px',
 
-          data: testData10,
+          data: testData10
 
-          // override the widgets default handler for the custom atstart event
-          atstart: function (event, data) {
-            console.log('Custom event atStart handler defined at initialization.');
-          }
         });
 
         // Alternate way of calling widget methods by calling object and passing in func name
@@ -99,12 +103,19 @@ let testData10 = [
         // 2) Returning false or using stopImmediatePropagation(), stopPropagation()
         // and preventDefault() does not seem to stop the default handler from firing?
         // 3) Note the closure. hander doesn't have a wy to pass in a widget context?
+        /*
         widgetElement.bind("timelinechange", function (event, data) {
           console.log("User defined change handler. Key is " + data.key  + ", Value is " + data.value);
 
           if (data.value === 0) {
             myTimeline._trigger("atstart", null, {'key': 'atstart', 'value': 0});
           }
+        });
+        */
+
+        $('#bGo').on('click', function (evt) {
+          let idx = parseInt($('#dataSet').val());
+          myTimeline.data(dataSets[idx]);
         });
 
       });
@@ -120,6 +131,16 @@ let testData10 = [
       <div id="widgetElement1" class="widgetElement full"></div>
 
     </div><!-- content -->
+
+    <div class="test-selector-container">
+      <select id="dataSet">
+        <option value="0">Test Data #N</option>
+        <option value="1">Test Data #1</option>
+        <option value="2">Test Data #5</option>
+        <option value="3">Test Data #10</option>
+      </select>
+      <button id="bGo">Load Data</button>
+    </div>
 
     <div id="debugConsole"></div>
 
