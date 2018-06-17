@@ -117,20 +117,20 @@ $.widget("custom.timeline", {
   // object vs as a regular method for them to be automatically bound.
   options: {
 
-  /*
-   * Selection window size as a fractional representation of the ratio of the window
-   * width to the display area width.
-   *
-   * @type {float}
-   */
+    /*
+     * Selection window size as a fractional representation of the ratio of the window
+     * width to the display area width.
+     *
+     * @type {float}
+     */
     windowSize: undefined,
 
-  /*
-   * Selection window start (left side) as a percentage (fractional representation)
-   * of the entire display area width.
-   *
-   * @type {float}
-   */
+    /*
+     * Selection window start (left side) as a percentage (fractional representation)
+     * of the entire display area width.
+     *
+     * @type {float}
+     */
     windowStart: undefined,
 
     value: 50,
@@ -167,7 +167,7 @@ $.widget("custom.timeline", {
      */
     afterResize: function (event, data) {
       let bRedraw = false,
-        widget = data; // for clarity
+        widget = data.context;
 
       if (widget._container.height() !== widget._displayHeight) {
         widget._displayHeight = Math.floor(widget._container.height());
@@ -256,14 +256,14 @@ $.widget("custom.timeline", {
     this._window.appendTo(this._container);
     this._container.appendTo(this.element);
 
-    this._displayWidth = Math.floor(this._container.width())
-    this._displayHeight = Math.floor(this._container.height()),
+    this._displayWidth = Math.floor(this._container.width());
+    this._displayHeight = Math.floor(this._container.height());
 
     this._windowStart = 0; // set start so windowSize() doesn't error
     this.windowSize(this.options.widowSize || this._DEFAULT_WINDOW_SIZE);
     this.windowStart(this.options.windowStart || this._DEFAULT_WINDOW_START);
 
-$("#debugConsole").text("px:" + this.windowStart() * this._container.width()+ ", %:" + this.windowStart() + ", sz:" + this.windowSize());
+$("#debugConsole").text("px:" + this.windowStart() * this._container.width() + ", %:" + this.windowStart() + ", sz:" + this.windowSize());
 
     // load data after _displayWidth is set
     if (this.options.data) {
@@ -273,8 +273,13 @@ $("#debugConsole").text("px:" + this.windowStart() * this._container.width()+ ",
     // setup selection window
     let widget = this;  // ToDO: fix this, isn't there a way to bind scope????????????????????
 
-    $(window).on('resize', function(event) {
-      widget._trigger('afterResize', event, widget);
+    $(window).on('resize', function (event) {
+      let oldValue = {
+        "w": widget._displayWidth,
+        "h": widget._displayHeight
+      };
+
+      widget._trigger("afterResize", event, {"oldValue": oldValue, "context": widget});
     });
 
     this._window.draggable({
@@ -285,16 +290,21 @@ $("#debugConsole").text("px:" + this.windowStart() * this._container.width()+ ",
       /**
        * Default jQuery draggable start handler.
        *
+       * Relay the event to the widgets 'beforeWindowMove' custom event.
+       *
        * @param {object} event
        * @param {object} ui
        * @returns {undefined}
        */
       start: function (event, ui) {
-        widget._trigger('beforeWindowMove', event, widget);
+        let x = $(this).position().left;
+        widget._trigger('beforeWindowMove', event, {"value": x, "context": widget});
       },
 
       /**
        * Default jQuery draggable start handler.
+       *
+       * Relay the event to the widgets 'windowMove' custom event.
        *
        * @param {object} event
        * @param {object} ui
@@ -302,19 +312,23 @@ $("#debugConsole").text("px:" + this.windowStart() * this._container.width()+ ",
        */
       drag: function (event, ui) {
         let x = $(this).position().left;
-$("#debugConsole").text("px:" + x.toFixed(1) + ", %:" + x / widget._container.width() + ", sz:" + widget.windowSize());
-        widget._trigger('windowMove', event, widget);
+        $("#debugConsole").text("px:" + x.toFixed(1) + ", %:" + x / widget._container.width() + ", sz:" + widget.windowSize());
+        widget._trigger('windowMove', event, {"value": x, "context": widget});
       },
 
       /**
+       * Default jQuery draggable stop handler.
+       *
+       * Relay the event to the widgets 'afterWindowMove' custom event.
        *
        * @param {object} event
        * @param {object} ui
        * @returns {undefined}
        */
       stop: function (event, ui) {
-        widget.windowStart($(this).position().left / widget._container.width());
-        widget._trigger('afterWindowMove', event, widget);
+        let x = $(this).position().left;
+        widget.windowStart(x / widget._container.width());
+        widget._trigger('afterWindowMove', event, {"value": x, "context": widget});
       }
 
     });
@@ -324,17 +338,23 @@ $("#debugConsole").text("px:" + x.toFixed(1) + ", %:" + x / widget._container.wi
    *
    * @param {string} key Option name.
    * @param {mixed} value New value.
+   * @param {mixed} oldValue The previous value of the option.
+   * @param {object} context The context the option was changed from, ofter the widget instance.
    * @returns {undefined}
    */
-  _setOption: function (key, value) {
+  _setOption: function (key, value, oldValue, context) {
     this._super(key, value);
 
     // do we need to manually trigger a change event?
-    this._trigger("change", null, {key: key, value: value});
+    this._trigger("change", null, {key: key, value: value, oldValue:oldValue, context:context});
   },
 
   /**
+   * Set the options this.options at instantiation.
    *
+   * This is called automatically by the base widget class.
+   *
+   * @param {object} options
    * @returns {undefined}
    */
   _setOptions: function (options) {
@@ -407,7 +427,7 @@ $("#debugConsole").text("px:" + x.toFixed(1) + ", %:" + x / widget._container.wi
 
     this._dataMaxDepth = 0;
 
-    if (data === undefined) {
+     if (data === undefined) {
       return this.options.data;
     }
 
@@ -502,10 +522,10 @@ $("#debugConsole").text("px:" + x.toFixed(1) + ", %:" + x / widget._container.wi
       }
 
       d3svg.append("line")
-        .attr("x1", x).attr("y1", this._displayHeight)
-        .attr("x2", x).attr("y2", this._displayHeight - y)
-        .attr("stroke-width", 2).attr("stroke", "blue")
-        .append("title").text(strCnt);
+              .attr("x1", x).attr("y1", this._displayHeight)
+              .attr("x2", x).attr("y2", this._displayHeight - y)
+              .attr("stroke-width", 2).attr("stroke", "blue")
+              .append("title").text(strCnt);
     }
   },
 
@@ -557,7 +577,7 @@ $("#debugConsole").text("px:" + x.toFixed(1) + ", %:" + x / widget._container.wi
 
 $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + ", %:" + this.windowStart() + ", sz:" + this.windowSize());
 
-    this._trigger('change', null, {"key": 'windowStart', "oldValue": oldvalue, "value": this._windowStart});
+    this._trigger('change', null, {"key": 'windowStart', "oldValue": oldvalue, "value": this._windowStart, "context": this});
   },
 
   /**
@@ -589,7 +609,7 @@ $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + "
 
 $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + ", %:" + this.windowStart() + ", sz:" + this.windowSize());
 
-    this._trigger('change', null, {"key": 'windowSize', "oldValue": oldvalue, "value": this._windowSize});
+    this._trigger('change', null, {"key": 'windowSize', "oldValue": oldvalue, "value": this._windowSize, "context": this});
   },
 
   /**
@@ -621,7 +641,7 @@ $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + "
 
 $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + ", %:" + this.windowStart() + ", sz:" + this.windowSize());
 
-    this._trigger('change', null, {"key": 'windowEnd', "oldValue": oldvalue, "value": value});
+    this._trigger('change', null, {"key": 'windowEnd', "oldValue": oldvalue, "value": value, "context": this});
   }
 
 });
