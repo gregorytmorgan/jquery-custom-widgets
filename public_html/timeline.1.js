@@ -117,13 +117,31 @@ $.widget("custom.timeline", {
   // object vs as a regular method for them to be automatically bound.
   options: {
 
+    /**
+     * The widget width.
+     *
+     * CSS width. Defaults to the element width
+     *
+     * @type {string}
+     */
+    width: '100%',
+
+    /**
+     * The widget height.
+     *
+     * CSS width. Defaults to the element height
+     *
+     * @type {string}
+     */
+    height: '100%',
+
     /*
      * Selection window size as a fractional representation of the ratio of the window
      * width to the display area width.
      *
      * @type {float}
      */
-    windowSize: undefined,
+    windowSize: .25,
 
     /*
      * Selection window start (left side) as a percentage (fractional representation)
@@ -131,7 +149,7 @@ $.widget("custom.timeline", {
      *
      * @type {float}
      */
-    windowStart: undefined,
+    windowStart: .25,
 
     /**
      * @type {array} data Array of data objects.
@@ -141,7 +159,7 @@ $.widget("custom.timeline", {
      *   ...
      * ]
      */
-    data: undefined,
+    data: null,
 
     /**
      * Default option change event handler.
@@ -227,6 +245,15 @@ $.widget("custom.timeline", {
    * @returns {undefined}
    */
   _create: function () {
+    // validate the user options
+    for (let key in this.options) {
+      if (this.options.hasOwnProperty(key)) {
+        if (!(key in $.custom.timeline.prototype.options)) {
+          throw new Error('Invalid option: ' + key);
+        }
+      }
+    }
+
     this._container = $('<div class="timeline"></div>')
     this._container.css({
       width: this.options.width || this._DEFAULT_WIDTH,
