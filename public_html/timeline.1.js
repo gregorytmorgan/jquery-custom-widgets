@@ -133,8 +133,6 @@ $.widget("custom.timeline", {
      */
     windowStart: undefined,
 
-    value: 50,
-
     /**
      * @type {array} data Array of data objects.
      * [
@@ -533,26 +531,6 @@ $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + "
               .attr("stroke-width", 2).attr("stroke", "blue")
               .append("title").text(strCnt);
     }
-  },
-
-  /**
-   * Getter/Setter for value.
-   *
-   * @ToDo: remove all the 'value' related code
-   *
-   * @param {integer} value
-   * @returns {undefined}
-   */
-  value: function (value) {
-    if (value === undefined) {
-      return this.options.value;
-    }
-
-    if (value > 100 || value < 0) {
-      throw new Error("Invalid value: "  + value);
-    }
-
-    this._setOption("value", value);
   },
 
   /**
