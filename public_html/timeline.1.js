@@ -435,8 +435,8 @@ $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + "
 
     this._dataMaxDepth = 1;
 
-     if (data === undefined) {
-      return this.options.data;
+    if (data === undefined) {
+      return this._data;
     }
 
     for (i = 0, len = data.length; i < len; i++) {
@@ -483,8 +483,6 @@ $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + "
     this._dataOffset = dataMin.key;
 
     this._draw();
-
-    this._setOption("data", data);
   },
 
   /**
