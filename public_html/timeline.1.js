@@ -425,7 +425,7 @@ $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + "
   data: function (data) {
     let i, len, dataMin, dataMax, oItem;
 
-    this._dataMaxDepth = 0;
+    this._dataMaxDepth = 1;
 
      if (data === undefined) {
       return this.options.data;
