@@ -166,22 +166,8 @@ $.widget("custom.timeline", {
      * @returns {undefined}
      */
     afterResize: function (event, data) {
-      let bRedraw = false,
-        widget = data.context;
-
-      if (widget._container.height() !== widget._displayHeight) {
-        widget._displayHeight = Math.floor(widget._container.height());
-        bRedraw = true;
-      }
-
-      if (widget._container.width() !== widget._displayWidth) {
-        widget._displayWidth = Math.floor(widget._container.width());
-        bRedraw = true;
-      }
-
-      if (bRedraw) {
-        widget._draw();
-      }
+      let widget = data.context;
+      widget._draw();
     },
 
     /**
@@ -273,15 +259,37 @@ $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + "
     // setup selection window
     let widget = this;  // ToDO: fix this, isn't there a way to bind scope????????????????????
 
+    /**
+     * On resize event handler.
+     *
+     * Hook the browser window resize event.  If the window resize cause the widget to
+     * resize, then trigger the widgets custom 'afterResize' event
+     *
+     * @param {object} event
+     */
     $(window).on('resize', function (event) {
-      let oldValue = {
+      let bResize = false,
+        oldValue = {
         "w": widget._displayWidth,
         "h": widget._displayHeight
       };
 
-      widget._trigger("afterResize", event, {"oldValue": oldValue, "context": widget});
+      if (widget._container.height() !== widget._displayHeight) {
+        widget._displayHeight = Math.floor(widget._container.height());
+        bResize = true;
+      }
+
+      if (widget._container.width() !== widget._displayWidth) {
+        widget._displayWidth = Math.floor(widget._container.width());
+        bResize = true;
+      }
+
+      if (bResize) {
+        widget._trigger("afterResize", event, {"oldValue": oldValue, "context": widget});
+      }
     });
 
+    // Make the select window draggable.
     this._window.draggable({
       axis: "x",
       containment: "parent",
@@ -331,7 +339,7 @@ $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + "
         widget._trigger('afterWindowMove', event, {"value": x, "context": widget});
       }
 
-    });
+    }); // draggable
   },
 
   /**
