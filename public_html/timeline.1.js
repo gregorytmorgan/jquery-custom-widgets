@@ -6,8 +6,7 @@
  *
  * In the context of the widget the following terms apply:
  *  - 'window'    The selected portion of the data set.
- *  - 'data'      An array of data objects; the dataset.  The provided data is
- *                considered immutable and will not be modified.
+ *  - 'data'      An array of data objects; the dataset.
  *  - 'element'   The dom element provided by the call that the widget is attached to.
  *  - 'container' The internal dom element used by the widget.
  *
@@ -33,7 +32,6 @@
  *  windowStart() - Set/get the left edge position.
  *  windowEnd() - Set the size via right edge, get the right edge position
  *  windowSize() - Set/get the windown width.
- *  data()
  *
  */
 $.widget("custom.timeline", {
@@ -96,16 +94,6 @@ $.widget("custom.timeline", {
    */
   _dataOffset: undefined,
 
-  /**
-   * @type {array} data Array of data objects.
-   * [
-   *   {'key': 44, 'value': 343124},
-   *   {'key': 123, 'value': 8484},
-   *   ...
-   * ]
-   */
-  _data: undefined,
-
   // data items with the same key are combined. Depth refers to the number of
   // items with a given key
   _dataMaxDepth: undefined,
@@ -154,8 +142,12 @@ $.widget("custom.timeline", {
     /**
      * @type {array} data Array of data objects.
      * [
-     *   {'key': 44, 'value': 343124},
-     *   {'key': 123, 'value': 8484},
+     *   {'key': 44, 'value': 324},
+     *   [
+     *    {'key': 123, 'value': 8484},
+     *    {'key': 37, 'value': 1161}
+     *    ...
+     *   ],
      *   ...
      * ]
      */
@@ -276,11 +268,6 @@ $.widget("custom.timeline", {
 
 $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + ", %:" + this.windowStart() + ", sz:" + this.windowSize());
 
-    // load data after _displayWidth is set
-    if (this.options.data) {
-      this.data(this.options.data);
-    }
-
     // setup selection window
     let widget = this;  // ToDO: fix this, isn't there a way to bind scope????????????????????
 
@@ -365,6 +352,13 @@ $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + "
       }
 
     }); // draggable
+
+    // load the data
+    //
+    // Note: display width needs to be set before data is set.
+    if (this.options.data !== null) {
+      this._setOption('data', this.options.data);
+    }
   },
 
   /**
@@ -375,7 +369,20 @@ $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + "
    * @param {object} context The context the option was changed from, ofter the widget instance.
    * @returns {undefined}
    */
-  _setOption: function (key, value, oldValue, context) {
+  _setOption: function (key, value) {
+    let oldValue,
+      context = this;
+
+    switch (key) {
+      case "data":
+        oldValue = this.options.data;
+        this._data(value);
+        this._draw();
+        break;
+      default:
+        // empty
+    }
+
     this._super(key, value);
 
     // do we need to manually trigger a change event?
@@ -433,20 +440,11 @@ $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + "
   },
 
   /**
+   * Setup the data.
    *
-   * @returns {undefined}
-   */
-  _destroy: function() {
-    // ToDo: ????
-  },
-
-  /*
-   * Public methods
-   *
-   */
-
-  /**
-   * Set the data.
+   * 1) Sorts data by key.
+   * 3) Aggregates duplicate keys
+   * 3) Discovers _dataMaxDepth, _dataRange, _dataOffset
    *
    * @param {array} data Array of data objects.
    * [
@@ -455,13 +453,13 @@ $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + "
    *   ...
    * ]
    */
-  data: function (data) {
+  _data: function (data) {
     let i, len, dataMin, dataMax, oItem;
 
     this._dataMaxDepth = 1;
 
     if (data === undefined) {
-      return this._data;
+      return this.options.data;
     }
 
     for (i = 0, len = data.length; i < len; i++) {
@@ -479,27 +477,24 @@ $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + "
       throw new Error("Invalid data");
     }
 
-    // deep copy/clone the original array. todo: How expensive?
-    this._data = data.slice();
-
-    this._data.sort(this._dataCompare);
+    data.sort(this._dataCompare);
 
     // walk data and find items with same key, combine them into a single index
-    for (i = 0; i < this._data.length - 1; i +=1) {
-      oItem = ($.isArray(this._data[i])) ? this._data[i][0] : this._data[i];
-      if (oItem.key === this._data[i + 1].key) {
-        if ($.isArray(this._data[i])) {
-          this._data[i].push(data[i + 1]);
+    for (i = 0; i < data.length - 1; i +=1) {
+      oItem = ($.isArray(data[i])) ? data[i][0] : data[i];
+      if (oItem.key === data[i + 1].key) {
+        if ($.isArray(data[i])) {
+          data[i].push(data[i + 1]);
         } else {
-          let tmp = this._data[i];
-          this._data[i] = [tmp, this._data[i + 1]];
+          let tmp = data[i];
+          data[i] = [tmp, data[i + 1]];
         }
 
-        if (this._data[i].length > this._dataMaxDepth) {
-          this._dataMaxDepth = this._data[i].length;
+        if (data[i].length > this._dataMaxDepth) {
+          this._dataMaxDepth = data[i].length;
         }
 
-        this._data.splice(i + 1, 1);
+        data.splice(i + 1, 1);
         i--;
       }
     }
@@ -507,7 +502,7 @@ $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + "
     this._dataRange = (dataMax.key - dataMin.key) + 1;
     this._dataOffset = dataMin.key;
 
-    this._draw();
+    this.options.data = data;
   },
 
   /**
@@ -517,15 +512,19 @@ $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + "
    *
    * How to deal with dates? Force user to convert to timestamp?
    *
-   * @param {object} a Data object {key:string, value:mixed}
-   * @param {object} b Data object {key:string, value:mixed}
-   * @returns {Number} Returns -1 if a < b, 0 if equal, 1 if a > b
+   * @param {object} a Data object {key:integer, value:mixed} or [{key:integer, value:mixed}, ...]
+   * @param {object} b Data object {key:integer, value:mixed} or [{key:integer, value:mixed}, ...]
+   * @returns {integer} Returns -1 if a < b, 0 if equal, 1 if a > b
    */
   _dataCompare: function (a, b) {
-    if (a.key === b.key) {
+    let aKey = ($.isArray(a)) ? a[0].key : a.key,
+      bKey = ($.isArray(b)) ? b[0].key : b.key;
+
+    if (aKey === bKey) {
       return 0;
     }
-    return (a.key > b.key) ? 1 : -1;
+
+    return (aKey > bKey) ? 1 : -1;
   },
 
   /**
@@ -541,13 +540,13 @@ $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + "
     let d3tl = d3.select(".timeline");
     let d3svg = d3tl.append("svg").attr("id", 'dataBg').attr("width", '100%').attr("height", '100%');
 
-    for (i = 0, len = this._data.length; i < len; i += 1) {
-      if ($.isArray(this._data[i])) {
-        x = this._dataIndexToDisplayIndex(this._data[i][0].key);
-        y = ((1 / this._dataMaxDepth) * this._data[i].length) * this._displayHeight;
-        strCnt = this._data[i].length.toString();
+    for (i = 0, len = this.options.data.length; i < len; i += 1) {
+      if ($.isArray(this.options.data[i])) {
+        x = this._dataIndexToDisplayIndex(this.options.data[i][0].key);
+        y = ((1 / this._dataMaxDepth) * this.options.data[i].length) * this._displayHeight;
+        strCnt = this.options.data[i].length.toString();
       } else {
-        x = this._dataIndexToDisplayIndex(this._data[i].key);
+        x = this._dataIndexToDisplayIndex(this.options.data[i].key);
         y = ((1 / this._dataMaxDepth))  * this._displayHeight;
         strCnt = "1";
       }
@@ -559,6 +558,19 @@ $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + "
               .append("title").text(strCnt);
     }
   },
+
+  /**
+   *
+   * @returns {undefined}
+   */
+  _destroy: function() {
+    // ToDo: ????
+  },
+
+  /*
+   * Public methods
+   *
+   */
 
   /**
    * Change the selection window start (left edge).
