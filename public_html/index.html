@@ -125,12 +125,12 @@ jQuery Timeline-control Widget Tests
             strValue = "Array with " + data.keys.length + " length.";
           } else if ($.type(data) === "object") {
             keys = Object.keys(data);
-            strValue = "Object with " + keys.length + " keys. " + keys[0] + "...";
+            strValue = "Object with " + keys.length + " keys. '" + keys[0] + "', ...";
           } else {
             strValue = data.value;
           }
 
-          console.log("User defined change handler. Key is " + data.key  + ", Value is " + strValue);
+          console.log("User defined change handler. Key is '" + data.key  + "', Value is " + strValue);
         });
 
         //
