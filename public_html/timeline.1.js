@@ -1,13 +1,13 @@
 /**
  * Timeline Control Widget
  *
- * The timeine-control widget provides a UI control to constrain a dataset to a
+ * The timeline-control widget provides a UI control to constrain a dataset to a
  * specific window of data.
  *
  * In the context of the widget the following terms apply:
  *  - 'window'    The selected portion of the data set.
  *  - 'data'      An array of data objects; the dataset.
- *  - 'element'   The dom element provided by the call that the widget is attached to.
+ *  - 'element'   The dom element provided by the caller that the widget is attached to.
  *  - 'container' The internal dom element used by the widget.
  *
  * Instantiation Options
@@ -17,7 +17,17 @@
  *  height - CSS height. Default to element height.
  *  windowSize - Fractional representation of a percentage. 0 < windowStart <= 1.
  *  windowStart - Fractional representation of a percentage. 0 < windowStart < 1.
- *  data - Array of data.
+ *  data - Array of data objects. A data object is a single key value pair object,
+ *  or an array of key/value pair objects:
+ *  [
+ *    {'key': 44, 'value': 324},
+ *    [
+ *      {'key': 123, 'value': 8484},
+ *      {'key': 37, 'value': 1161}
+ *      ...
+ *    ],
+ *    ...
+ *  ]
  *
  *  // event handlers
  *  change - event handler.
@@ -33,30 +43,14 @@
  *  windowEnd() - Set the size via right edge, get the right edge position
  *  windowSize() - Set/get the windown width.
  *
+ *  @Todo Fix display mapping, need bucketing not pixel mapping.
+ *  @Todo Fix display so that item at left/right edge always have some relief.
+ *  @Todo Make selection widow resizeable via handles.
+ *  @Todo Add some testing.
  */
 $.widget("custom.timeline", {
 
   _window: null,
-
-  /**
-   * @type {string} CSS string
-   */
-  _DEFAULT_WIDTH: '100%',
-
-  /**
-   * @type {string} CSS string
-   */
-  _DEFAULT_HEIGHT: '100%',
-
-  /**
-   * @type {float}
-   */
-  _DEFAULT_WINDOW_SIZE: .25,
-
-  /**
-   * @type {float}
-   */
-  _DEFAULT_WINDOW_START: .25,
 
   /*
    * Selection window size as a fractional representation of the ratio of the window
@@ -75,16 +69,6 @@ $.widget("custom.timeline", {
   _windowStart: undefined,
 
   /**
-   *  @type {float}
-   */
-  _displayWidth: undefined,
-
-  /**
-   * @type {float}
-   */
-  _displayHeight: undefined,
-
-  /**
    * if data = [4, 12 20], then the data range is (20 - 4) + 1
    */
   _dataRange: undefined,
@@ -94,9 +78,27 @@ $.widget("custom.timeline", {
    */
   _dataOffset: undefined,
 
-  // data items with the same key are combined. Depth refers to the number of
-  // items with a given key
+  /**
+   * Data items with the same key are combined. Depth refers to the number of
+   * items with a given key.
+   *
+   * @type {integer}
+   */
   _dataMaxDepth: undefined,
+
+  /**
+   * The width of the widget in pixels.
+   *
+   * @type {float}
+   */
+  _width: undefined,
+
+  /**
+   * The height of the widget in pixels.
+   *
+   * @type {float}
+   */
+  _height: undefined,
 
   // Default options.
   //
@@ -106,18 +108,18 @@ $.widget("custom.timeline", {
   options: {
 
     /**
-     * The widget width.
+     * The user specified widget width.
      *
-     * CSS width. Defaults to the element width
+     * CSS width. Defaults to the element width.
      *
      * @type {string}
      */
     width: '100%',
 
     /**
-     * The widget height.
+     * The user specified widget height.
      *
-     * CSS width. Defaults to the element height
+     * CSS width. Defaults to the element height.
      *
      * @type {string}
      */
@@ -163,7 +165,7 @@ $.widget("custom.timeline", {
      */
     change: function (event, data) {
       let strVal = (data.key === 'data') ? "data object" : data.value;
-//console.log("Default change event handler. Key:" + data.key + ", Value:" + strVal);
+console.log("Default change event handler. Key:" + data.key + ", Value:" + strVal);
     },
 
     /**
@@ -246,11 +248,7 @@ $.widget("custom.timeline", {
       }
     }
 
-    this._container = $('<div class="timeline"></div>')
-    this._container.css({
-      width: this.options.width || this._DEFAULT_WIDTH,
-      height: this.options.height || this._DEFAULT_HEIGHT
-    });
+    this._container = $('<div class="timeline"></div>');
 
     // window element
     this._window = $('<div class="window"></div>');
@@ -259,12 +257,20 @@ $.widget("custom.timeline", {
     this._window.appendTo(this._container);
     this._container.appendTo(this.element);
 
-    this._displayWidth = Math.floor(this._container.width());
-    this._displayHeight = Math.floor(this._container.height());
+    this._width = Math.floor(this._container.width());
+    this._height = Math.floor(this._container.height());
+
+    if (this.options.width !== $.custom.timeline.prototype.options.width) {
+      this._setOption("width", this.options.width);
+    }
+
+    if (this.options.height !== $.custom.timeline.prototype.options.height) {
+      this._setOption("height", this.options.height);
+    }
 
     this._windowStart = 0; // set start so windowSize() doesn't error
-    this.windowSize(this.options.widowSize || this._DEFAULT_WINDOW_SIZE);
-    this.windowStart(this.options.windowStart || this._DEFAULT_WINDOW_START);
+    this.windowSize(this.options.widowSize || $.custom.timeline.prototype.options.windowSize);
+    this.windowStart(this.options.windowStart || $.custom.timeline.prototype.options.windowStart);
 
 $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + ", %:" + this.windowStart() + ", sz:" + this.windowSize());
 
@@ -282,17 +288,17 @@ $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + "
     $(window).on('resize', function (event) {
       let bResize = false,
         oldValue = {
-        "w": widget._displayWidth,
-        "h": widget._displayHeight
+        "w": widget._width,
+        "h": widget._height
       };
 
-      if (widget._container.height() !== widget._displayHeight) {
-        widget._displayHeight = Math.floor(widget._container.height());
+      if (widget._container.width() !== widget._width) {
+        widget._width = Math.floor(widget._container.width());
         bResize = true;
       }
 
-      if (widget._container.width() !== widget._displayWidth) {
-        widget._displayWidth = Math.floor(widget._container.width());
+      if (widget._container.height() !== widget._height) {
+        widget._height = Math.floor(widget._container.height());
         bResize = true;
       }
 
@@ -373,11 +379,24 @@ $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + "
     let oldValue,
       context = this;
 
+    if (this.options[key] === undefined) {
+      throw new Error('Invalid option: ' + key);
+    }
+
+    oldValue = this.options[key];
+
     switch (key) {
       case "data":
-        oldValue = this.options.data;
         this._data(value);
         this._draw();
+        break;
+      case "width":
+        this._container.css({"width":this.options.width});
+        this._width = Math.floor(this._container.width());
+        break;
+      case "height":
+        this._container.css({"height":this.options.height});
+        this._height = Math.floor(this._container.height());
         break;
       default:
         // empty
@@ -408,7 +427,7 @@ $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + "
    * @throws Exception
    */
   _displayFactor: function () {
-    if (!this._displayWidth) {
+    if (!this._width) {
       throw new Error('Invalid display width');
     }
 
@@ -416,7 +435,7 @@ $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + "
       throw new Error('Invalid data range');
     }
 
-    return this._displayWidth / this._dataRange;
+    return this._width / this._dataRange;
   },
 
   /**
@@ -470,7 +489,6 @@ $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + "
       if (dataMax === undefined || this._dataCompare(data[i], dataMax) > 0) {
         dataMax = data[i];
       }
-
     }
 
     if (dataMax === undefined || dataMin === undefined) {
@@ -481,21 +499,23 @@ $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + "
 
     // walk data and find items with same key, combine them into a single index
     for (i = 0; i < data.length - 1; i +=1) {
-      oItem = ($.isArray(data[i])) ? data[i][0] : data[i];
+      oItem = ($.type(data[i]) === "array") ? data[i][0] : data[i];
       if (oItem.key === data[i + 1].key) {
-        if ($.isArray(data[i])) {
+        if ($.type(data[i]) === "array") {
           data[i].push(data[i + 1]);
         } else {
           let tmp = data[i];
           data[i] = [tmp, data[i + 1]];
         }
 
+        data.splice(i + 1, 1);
+        i--;
+      }
+
+      if (data[i].length) {
         if (data[i].length > this._dataMaxDepth) {
           this._dataMaxDepth = data[i].length;
         }
-
-        data.splice(i + 1, 1);
-        i--;
       }
     }
 
@@ -517,8 +537,8 @@ $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + "
    * @returns {integer} Returns -1 if a < b, 0 if equal, 1 if a > b
    */
   _dataCompare: function (a, b) {
-    let aKey = ($.isArray(a)) ? a[0].key : a.key,
-      bKey = ($.isArray(b)) ? b[0].key : b.key;
+    let aKey = ($.type(a) === "array") ? a[0].key : a.key,
+      bKey = ($.type(b)  === "array") ? b[0].key : b.key;
 
     if (aKey === bKey) {
       return 0;
@@ -533,7 +553,7 @@ $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + "
    * @returns {undefined}
    */
   _draw: function () {
-    let i, len, x, y, strCnt;
+    let i, len, x, y, label;
 
     $('.timeline').find('svg#dataBg').remove();
 
@@ -541,21 +561,21 @@ $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + "
     let d3svg = d3tl.append("svg").attr("id", 'dataBg').attr("width", '100%').attr("height", '100%');
 
     for (i = 0, len = this.options.data.length; i < len; i += 1) {
-      if ($.isArray(this.options.data[i])) {
+      if ($.type(this.options.data[i]) === "array") {
         x = this._dataIndexToDisplayIndex(this.options.data[i][0].key);
-        y = ((1 / this._dataMaxDepth) * this.options.data[i].length) * this._displayHeight;
-        strCnt = this.options.data[i].length.toString();
+        y = ((1 / this._dataMaxDepth) * this.options.data[i].length) * this._height;
+        label = this.options.data[i].length.toString();
       } else {
         x = this._dataIndexToDisplayIndex(this.options.data[i].key);
-        y = ((1 / this._dataMaxDepth))  * this._displayHeight;
-        strCnt = "1";
+        y = ((1 / this._dataMaxDepth))  * this._height;
+        label = "1";
       }
 
       d3svg.append("line")
-              .attr("x1", x).attr("y1", this._displayHeight)
-              .attr("x2", x).attr("y2", this._displayHeight - y)
+              .attr("x1", x).attr("y1", this._height)
+              .attr("x2", x).attr("y2", this._height - y)
               .attr("stroke-width", 2).attr("stroke", "blue")
-              .append("title").text(strCnt);
+              .append("title").text(label);
     }
   },
 
