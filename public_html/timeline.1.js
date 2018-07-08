@@ -379,7 +379,7 @@ $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + "
     let oldValue,
       context = this;
 
-    if (this.options[key] === undefined) {
+    if (!this.options.hasOwnProperty(key)) {
       throw new Error('Invalid option: ' + key);
     }
 
@@ -477,8 +477,8 @@ $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + "
 
     this._dataMaxDepth = 1;
 
-    if (data === undefined) {
-      return this.options.data;
+    if (!data || !data.length) {
+      throw new Error('Invalid data');
     }
 
     for (i = 0, len = data.length; i < len; i++) {
@@ -489,10 +489,6 @@ $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + "
       if (dataMax === undefined || this._dataCompare(data[i], dataMax) > 0) {
         dataMax = data[i];
       }
-    }
-
-    if (dataMax === undefined || dataMin === undefined) {
-      throw new Error("Invalid data");
     }
 
     data.sort(this._dataCompare);
