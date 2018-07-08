@@ -14,6 +14,7 @@ jQuery Timeline-control Widget Tests
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script><!-- todo: create bundle -->
     <script src="https://d3js.org/d3.v5.min.js"></script><!-- ToDo: create bundle -->
     <script src="timeline.1.js"></script>
+    <script src="barView.js"></script>
     <script>
 
       const MIN_DATA_VALUE = 10;
@@ -95,30 +96,30 @@ jQuery Timeline-control Widget Tests
         // alternate widget initialization syntax
         // var bar = $.custom.progressbar({}, $("<div></div>").appendTo("body"));
 
-        let widgetElement = $("#widgetElement1");
+        let widgetElement1 = $("#widgetElement1");
 
         // construct a timeline widget in the widgetElement2 element. We pass
         // in a custom handler for the atstart' custom event.
-        widgetElement.timeline({
+        widgetElement1.timeline({
           // the widget defaults to using the widgetElement height, which is not set,
           // so provide an explict height.
           height: '48px',
-
           data: testData10
-
         });
 
         // Alternate way of calling widget methods by calling object and passing in func name
         //console.log("Initial value: " + widgetElement.timeline("value"));
 
-        let myTimeline = widgetElement.data("custom-timeline");
+        let myTimeline = widgetElement1.data("custom-timeline");
+
+        let widgetElement2 = $("#widgetElement2");
 
         // Notes:
         // 1) Custom handlers are called before the default.
         // 2) Returning false or using stopImmediatePropagation(), stopPropagation()
         // and preventDefault() does not seem to stop the default handler from firing?
         // 3) Note the closure. hander doesn't have a wy to pass in a widget context?
-        widgetElement.bind("timelinechange", function (event, data) {
+        widgetElement1.bind("timelinechange", function (event, data) {
           let strValue, keys;
 
           if ($.type(data) === "array") {
@@ -156,25 +157,25 @@ jQuery Timeline-control Widget Tests
   </script>
   </head>
   <body>
-    <div id="content">
+    <div class="content">
       <div class="title-block">
         <h1>Timeline Control Widget Test</h1>
       </div>
 
       <div id="widgetElement1" class="widgetElement full"></div>
+      <div id="widgetElement2" class="widgetElement full"></div>
 
+      <div class="test-selector-container">
+        <select id="dataSet">
+          <option value="0">Test Data #0</option>
+          <option value="1">Test Data #1</option>
+          <option value="2">Test Data #5</option>
+          <option value="3" selected>Test Data #10</option>
+          <option value="N">Test Data #N</option>
+        </select>
+        <button id="bGo">Load Data</button>
+      </div>
     </div><!-- content -->
-
-    <div class="test-selector-container">
-      <select id="dataSet">
-        <option value="0">Test Data #0</option>
-        <option value="1">Test Data #1</option>
-        <option value="2">Test Data #5</option>
-        <option value="3" selected>Test Data #10</option>
-        <option value="N">Test Data #N</option>
-      </select>
-      <button id="bGo">Load Data</button>
-    </div>
 
     <div id="debugConsole"></div>
 
