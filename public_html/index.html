@@ -16,17 +16,32 @@ jQuery Timeline-control Widget Tests
     <script src="timeline.1.js"></script>
     <script>
 
+      const MIN_DATA_VALUE = 10;
+      const MAX_DATA_VALUE = 1000;
+
       let testDataN = [];
 
-      // Math.random() * (max - min) + min;
-      let sz = Math.round(Math.random() * (100 - 10) + 10);
+      /**
+       * Create a random data set with a size of 'sz' and values between 'min' and 'max'.
+       *
+       * sz {integer} Number of values
+       * range {object} Range of values, {"min":int, "max": int}
+       */
+      function makeRandomDataSet(sz, range) {
+        let i, data = [];
 
-      for (i = 0; i < sz; i +=1) {
-        testDataN[i] = {
-          'key': Math.round(Math.random() * (1000 - 10) + 10),
-          'value': i
-        };
+        for (i = 0; i < sz; i +=1) {
+          data[i] = {
+            'key': Math.round(Math.random() * (range.max - range.min) + range.min),
+            'value': i
+          };
+        }
+
+        return data;
       }
+
+      // An empty data set is an error/invalid
+      let testData0 = [];
 
       let testData1 = [
         {'key':-1, 'value': 1}
@@ -54,7 +69,7 @@ jQuery Timeline-control Widget Tests
       ]
 
       let dataSets =[
-        testDataN,
+        testData0,
         testData1,
         testData5,
         testData10
@@ -103,19 +118,37 @@ jQuery Timeline-control Widget Tests
         // 2) Returning false or using stopImmediatePropagation(), stopPropagation()
         // and preventDefault() does not seem to stop the default handler from firing?
         // 3) Note the closure. hander doesn't have a wy to pass in a widget context?
-        /*
         widgetElement.bind("timelinechange", function (event, data) {
-          console.log("User defined change handler. Key is " + data.key  + ", Value is " + data.value);
+          let strValue, keys;
 
-          if (data.value === 0) {
-            myTimeline._trigger("atstart", null, {'key': 'atstart', 'value': 0});
+          if ($.type(data) === "array") {
+            strValue = "Array with " + data.keys.length + " length.";
+          } else if ($.type(data) === "object") {
+            keys = Object.keys(data);
+            strValue = "Object with " + keys.length + " keys. " + keys[0] + "...";
+          } else {
+            strValue = data.value;
           }
-        });
-        */
 
+          console.log("User defined change handler. Key is " + data.key  + ", Value is " + strValue);
+        });
+
+        //
+        //
+        //
         $('#bGo').on('click', function (evt) {
-          let idx = parseInt($('#dataSet').val());
-          myTimeline.data(dataSets[idx]);
+          let idx, testData, size,
+            selectValue = $('#dataSet').val();
+
+          if (selectValue == "N") {
+            size = Math.round(Math.random() * (100 - 10) + 10);
+            testData = makeRandomDataSet(size, {"min":MIN_DATA_VALUE, "max":MAX_DATA_VALUE});
+          } else {
+            idx = parseInt(selectValue);
+            testData = dataSets[idx];
+          }
+
+          myTimeline.option('data', testData);
         });
 
       });
@@ -134,10 +167,11 @@ jQuery Timeline-control Widget Tests
 
     <div class="test-selector-container">
       <select id="dataSet">
-        <option value="0">Test Data #N</option>
+        <option value="0">Test Data #0</option>
         <option value="1">Test Data #1</option>
         <option value="2">Test Data #5</option>
-        <option value="3">Test Data #10</option>
+        <option value="3" selected>Test Data #10</option>
+        <option value="N">Test Data #N</option>
       </select>
       <button id="bGo">Load Data</button>
     </div>
