@@ -156,6 +156,12 @@ $.widget("custom.timeline", {
     data: null,
 
     /**
+     *
+     * @type {boolean}
+     */
+    cloneData: true,
+
+    /**
      * Default option change event handler.
      *
      * @param {object} event jQuery Event.
@@ -376,7 +382,7 @@ $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + "
    * @returns {undefined}
    */
   _setOption: function (key, value) {
-    let oldValue,
+    let oldValue, data,
       context = this;
 
     if (!this.options.hasOwnProperty(key)) {
@@ -387,7 +393,8 @@ $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + "
 
     switch (key) {
       case "data":
-        this._data(value);
+        data = (this.options.cloneData) ? jQuery.extend(true, [], value) : value;
+        this._data(data);
         this._draw();
         break;
       case "width":
