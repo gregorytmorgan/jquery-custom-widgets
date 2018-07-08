@@ -52,11 +52,15 @@ body {
 }
 
 .test-selector-container {
-  margin: 1em 0 0 1%;
+  display: block;
+  float: left;
+  position: relative;
+  overflow: hidden;
+  margin: .5em 0 0 1%;
 }
 
-.test-selector-container button,
-.test-selector-container select
+.content button,
+.content select
 {
   height: 2em;
 }
