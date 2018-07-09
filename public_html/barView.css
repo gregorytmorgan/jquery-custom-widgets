@@ -1,0 +1,6 @@
+.barView {
+  position: relative;
+  display: block;
+  min-height: 16px;
+  border: none;
+}
