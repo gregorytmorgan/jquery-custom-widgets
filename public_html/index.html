@@ -48,6 +48,19 @@ jQuery Timeline-control Widget Tests
         {'key':-1, 'value': 1}
       ];
 
+      let testData2 = [
+        {'key':0, 'value': 0},
+        {'key':1, 'value': 1}
+      ];
+
+      let testData3 = [
+        {'key':0, 'value': 0},
+        [
+          {'key':1, 'value': 1},
+          {'key':1, 'value': 2}
+        ]
+      ];
+
       let testData5 = [
         {'key':1, 'value': 1},
         {'key':2, 'value': 2},
@@ -72,6 +85,8 @@ jQuery Timeline-control Widget Tests
       let dataSets =[
         testData0,
         testData1,
+        testData2,
+        testData3,
         testData5,
         testData10
       ]
@@ -93,6 +108,10 @@ jQuery Timeline-control Widget Tests
       $(document).ready(function () {
         console.log("documentReady");
 
+        //
+        // setup the data contraint view
+        //
+
         // alternate widget initialization syntax
         // var bar = $.custom.progressbar({}, $("<div></div>").appendTo("body"));
 
@@ -110,9 +129,7 @@ jQuery Timeline-control Widget Tests
         // Alternate way of calling widget methods by calling object and passing in func name
         //console.log("Initial value: " + widgetElement.timeline("value"));
 
-        let myTimeline = widgetElement1.data("custom-timeline");
-
-        let widgetElement2 = $("#widgetElement2");
+        let dataConstraint = widgetElement1.data("custom-timeline");
 
         // Notes:
         // 1) Custom handlers are called before the default.
@@ -134,14 +151,29 @@ jQuery Timeline-control Widget Tests
           console.log("User defined change handler. Key is '" + data.key  + "', Value is " + strValue);
         });
 
+
         //
+        // setup the primary data view
         //
+
+        let widgetElement2 = $("#widgetElement2");
+
+
+        widgetElement2.barView({
+          height: '48px',
+          data: testData10
+        });
+
+        let myBarView = widgetElement2.data("custom-barView");
+
         //
-        $('#bGo').on('click', function (evt) {
+        // Note: the click event also triggers on 'keypress enter'
+        //
+        $('#bGo').on('click', function (event) {
           let idx, testData, size,
             selectValue = $('#dataSet').val();
 
-          if (selectValue == "N") {
+          if (selectValue === "N") {
             size = Math.round(Math.random() * (100 - 10) + 10);
             testData = makeRandomDataSet(size, {"min":MIN_DATA_VALUE, "max":MAX_DATA_VALUE});
           } else {
@@ -149,7 +181,17 @@ jQuery Timeline-control Widget Tests
             testData = dataSets[idx];
           }
 
-          myTimeline.option('data', testData);
+          try {
+            dataConstraint.option('data', testData);
+          } catch (e) {
+            alert (e.message);
+          }
+
+          try {
+            myBarView.option('data', testData);
+          } catch (e) {
+            alert (e.message);
+          }
         });
 
       });
@@ -169,6 +211,8 @@ jQuery Timeline-control Widget Tests
         <select id="dataSet">
           <option value="0">Test Data #0</option>
           <option value="1">Test Data #1</option>
+          <option value="2">Test Data #2</option>
+          <option value="3">Test Data #3</option>
           <option value="2">Test Data #5</option>
           <option value="3" selected>Test Data #10</option>
           <option value="N">Test Data #N</option>
