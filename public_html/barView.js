@@ -39,8 +39,6 @@
  */
 $.widget("custom.barView", {
 
-  _window: null,
-
   /**
    * if data = [4, 12 20], then the data range is (20 - 4) + 1
    */
