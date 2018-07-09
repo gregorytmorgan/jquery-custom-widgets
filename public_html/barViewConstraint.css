@@ -1,0 +1,11 @@
+
+.barViewConstraint .window {
+  position: absolute;
+  top: 0;
+  background-color: black;
+  opacity: 0.1;
+  cursor: move;
+  height: 100%;
+  min-width: 1px;
+  border: none;
+}
