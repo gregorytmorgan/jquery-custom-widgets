@@ -25,10 +25,9 @@
  *    ...
  *  ]
  *
- *  // event handlers
+ *  // event handlers - this can be defined/passed in at instantiation time.
  *  change - event handler.
  *  afterResize - event handler.
- *  afterWindowMove - event handler.
  *
  * Public Methods
  *  ...
@@ -77,8 +76,12 @@ $.widget("custom.barView", {
   // Default options.
   //
   // Notes:
+  //
   // 1) In the case of event handlers, they must be defined here in the options
   // object vs as a regular method for them to be automatically bound.
+  //
+  // 2) All options must be defined with a default, otherwise an exception is thrown.
+  //
   options: {
 
     /**
@@ -158,7 +161,7 @@ console.log("Default change event handler. Key:" + data.key + ", Value:" + strVa
       }
     }
 
-    this._container = $('<div class="barView"></div>');
+    this._container = $('<div class="' + this.widgetName +'"></div>');
 
     // assemble the elements early so we can get width, height, ...
     this._container.appendTo(this.element);
@@ -400,9 +403,9 @@ console.log("Default change event handler. Key:" + data.key + ", Value:" + strVa
   _draw: function () {
     let i, len, x, y, label;
 
-    $('.barView').find('svg#dataBg').remove();
+    this._container.find('svg#dataBg').remove();
 
-    let d3tl = d3.select(".barView");
+    let d3tl = d3.select(this._container[0]); // get the raw DOM element
     let d3svg = d3tl.append("svg").attr("id", 'dataBg').attr("width", '100%').attr("height", '100%');
 
     for (i = 0, len = this.options.data.length; i < len; i += 1) {
