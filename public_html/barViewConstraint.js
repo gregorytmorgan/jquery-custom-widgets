@@ -119,12 +119,11 @@ $.widget("custom.barViewConstraint", $.custom.barView, {
     this._window.appendTo(this._container);
 
     this._windowStart = 0; // set start so windowSize() doesn't error
-    this.windowSize(this.options.widowSize || $.custom.timeline.prototype.options.windowSize);
-    this.windowStart(this.options.windowStart || $.custom.timeline.prototype.options.windowStart);
+    this.windowSize(this.options.widowSize || $.custom.barView.prototype.options.windowSize);
+    this.windowStart(this.options.windowStart || $.custom.barView.prototype.options.windowStart);
 
     // setup selection window
     let widget = this;  // ToDO: fix this, isn't there a way to bind scope????????????????????
-
 
     // Make the select window draggable.
     this._window.draggable({
