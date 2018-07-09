@@ -254,7 +254,7 @@ console.log("Default change event handler. Key:" + data.key + ", Value:" + strVa
       }
     }
 
-    this._container = $('<div class="timeline"></div>');
+    this._container = $('<div class="' + this.widgetName + '"></div>');
 
     // window element
     this._window = $('<div class="window"></div>');
@@ -377,8 +377,6 @@ $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + "
    *
    * @param {string} key Option name.
    * @param {mixed} value New value.
-   * @param {mixed} oldValue The previous value of the option.
-   * @param {object} context The context the option was changed from, ofter the widget instance.
    * @returns {undefined}
    */
   _setOption: function (key, value) {
@@ -558,9 +556,9 @@ $("#debugConsole").text("px:" + this.windowStart() * this._container.width() + "
   _draw: function () {
     let i, len, x, y, label;
 
-    $('.timeline').find('svg#dataBg').remove();
+    this._container.find('svg#dataBg').remove();
 
-    let d3tl = d3.select(".timeline");
+    let d3tl = d3.select(this._container[0]);
     let d3svg = d3tl.append("svg").attr("id", 'dataBg').attr("width", '100%').attr("height", '100%');
 
     for (i = 0, len = this.options.data.length; i < len; i += 1) {
