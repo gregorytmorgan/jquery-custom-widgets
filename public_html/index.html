@@ -15,6 +15,7 @@ jQuery Timeline-control Widget Tests
     <script src="https://d3js.org/d3.v5.min.js"></script><!-- ToDo: create bundle -->
     <script src="timeline.1.js"></script>
     <script src="barView.js"></script>
+    <script src="barViewConstraint.js"></script>
     <script>
 
       const MIN_DATA_VALUE = 10;
@@ -167,6 +168,21 @@ jQuery Timeline-control Widget Tests
         let myBarView = widgetElement2.data("custom-barView");
 
         //
+        // setup the primary data view constraint
+        //
+
+        let widgetElement3 = $("#widgetElement3");
+
+        widgetElement3.barViewConstraint({
+          height: '48px',
+          data: testData10
+        });
+
+        let myBarViewConstraint = widgetElement3.data("custom-barViewConstraint");
+
+        //
+        // Setup the load data UI
+        //
         // Note: the click event also triggers on 'keypress enter'
         //
         $('#bGo').on('click', function (event) {
@@ -192,6 +208,13 @@ jQuery Timeline-control Widget Tests
           } catch (e) {
             alert (e.message);
           }
+
+          try {
+            myBarViewConstraint.option('data', testData);
+          } catch (e) {
+            alert (e.message);
+          }
+
         });
 
       });
@@ -206,6 +229,7 @@ jQuery Timeline-control Widget Tests
 
       <div id="widgetElement1" class="widgetElement full"></div>
       <div id="widgetElement2" class="widgetElement full"></div>
+      <div id="widgetElement3" class="widgetElement full"></div>
 
       <div class="test-selector-container">
         <select id="dataSet">
@@ -213,8 +237,8 @@ jQuery Timeline-control Widget Tests
           <option value="1">Test Data #1</option>
           <option value="2">Test Data #2</option>
           <option value="3">Test Data #3</option>
-          <option value="2">Test Data #5</option>
-          <option value="3" selected>Test Data #10</option>
+          <option value="4">Test Data #5</option>
+          <option value="5" selected>Test Data #10</option>
           <option value="N">Test Data #N</option>
         </select>
         <button id="bGo">Load Data</button>
