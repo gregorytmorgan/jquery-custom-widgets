@@ -135,12 +135,14 @@ jQuery Timeline-control Widget Tests
 
         let dataConstraint = widgetElement1.data("custom-timeline");
 
+        // Example of adding an additional event hander vs overriding the default.
+        //
         // Notes:
         // 1) Custom handlers are called before the default.
         // 2) Returning false or using stopImmediatePropagation(), stopPropagation()
         // and preventDefault() does not seem to stop the default handler from firing?
-        // 3) Note the closure. hander doesn't have a wy to pass in a widget context?
-        widgetElement1.bind("timelinechange", function (event, data) {
+        // 3) Context can be pass either by EMCMA5 'bind' or using jquery proxy().
+        widgetElement1.on("timelinechange", (function (event, data) {
           let strValue, keys;
 
           if ($.type(data) === "array") {
@@ -152,9 +154,10 @@ jQuery Timeline-control Widget Tests
             strValue = data.value;
           }
 
-          console.log("User defined change handler. Key is '" + data.key  + "', Value is " + strValue);
-        });
+          console.log("This is a " + this.widgetName + " instance.");
 
+          console.log("User defined change handler. Key is '" + data.key  + "', Value is " + strValue);
+        }).bind(dataConstraint));
 
         //
         // setup the primary data view
@@ -162,26 +165,48 @@ jQuery Timeline-control Widget Tests
 
         let widgetElement2 = $("#widgetElement2");
 
-
         widgetElement2.barView({
           height: '48px',
-          data: testData10
+          data: testData10,
+          "change": function (event, data) {
+            console.log(this.widgetName + ' custom change #1 ' + data.key + ", old:" + data.oldValue + ", new:" + data.value);
+          }
         });
 
         let myBarView = widgetElement2.data("custom-barView");
+
+        // update the change handler
+        myBarView.option('change', function (event, data)  {
+            console.log(this.widgetName + ' custom change #2 ' + data.key + ", old:" + data.oldValue + ", new:" + data.value);
+          });
+
+        // confirm change handler update + test auto redraw(?)
+        myBarView.option('height', '200px');
 
         //
         // setup the primary data view constraint
         //
 
-        let widgetElement3 = $("#widgetElement3");
-
-        widgetElement3.barViewConstraint({
-          height: '48px',
-          data: testData10
-        });
-
-        let myBarViewConstraint = widgetElement3.data("custom-barViewConstraint");
+//        let widgetElement3 = $("#widgetElement3");
+//
+//        widgetElement3.barViewConstraint({
+//          'height': '48px',
+//          'data': testData10,
+//          'afterWindowMove': function (event, data) {
+//            let selectValue, size, testData, newTestData, left, right;
+//
+//            testData = data.context.option('data');
+//
+//            left = Math.floor(data.context.windowStart() * testData.length),
+//            right = Math.ceil(data.context.windowEnd() * testData.length);
+//
+//            newTestData = testData.splice(left, right);
+//
+//            myBarView.option('data', newTestData);
+//          }
+//        });
+//
+//        let myBarViewConstraint = widgetElement3.data("custom-barViewConstraint");
 
         //
         // Setup the load data UI
@@ -212,11 +237,11 @@ jQuery Timeline-control Widget Tests
             alert (e.message);
           }
 
-          try {
-            myBarViewConstraint.option('data', testData);
-          } catch (e) {
-            alert (e.message);
-          }
+//          try {
+//            myBarViewConstraint.option('data', testData);
+//          } catch (e) {
+//            alert (e.message);
+//          }
 
         });
 
