@@ -71,6 +71,13 @@ $.widget("custom.barView", {
    */
   _height: undefined,
 
+  /**
+   * Has the data been modified since the last draw?
+   *
+   * @type {boolean}
+   */
+  _isModified: false,
+
   // Default options.
   //
   // Notes:
@@ -112,7 +119,16 @@ $.widget("custom.barView", {
      *   ...
      * ]
      */
-    data: null,
+    data: [],
+
+    /**
+     * When setting the widget data, should the data set be copied so it
+     * remains unchanged? Otherwise, it may be changed, e.g items with the same
+     * key will be aggregated.
+     *
+     * @type {boolean}
+     */
+    cloneData: true,
 
     /**
      * Default option change event handler.
@@ -146,6 +162,7 @@ console.log("Default change event handler. Key:" + data.key + ", Value:" + strVa
    */
 
   /**
+   * Constructor
    *
    * @returns {undefined}
    */
@@ -235,24 +252,33 @@ console.log("Default change event handler. Key:" + data.key + ", Value:" + strVa
     oldValue = this.options[key];
 
     switch (key) {
+      case "cloneData":
+        value = !!value;
+        break;
       case "data":
         data = (this.options.cloneData) ? jQuery.extend(true, [], value) : value;
-        this._data(data);
-        this._draw();
+        data = this._preprocessData(data);
+        this._isModified = true;
         break;
       case "width":
         this._container.css({"width":this.options.width});
         this._width = Math.floor(this._container.width());
+        //this._isModified = true;
         break;
       case "height":
         this._container.css({"height":this.options.height});
         this._height = Math.floor(this._container.height());
+        //this._isModified = true;
         break;
       default:
         // empty
     }
 
     this._super(key, value);
+
+    if (this._isModified) {
+      this._draw();
+    }
 
     // do we need to manually trigger a change event?
     this._trigger("change", null, {key: key, value: value, oldValue:oldValue, context:context});
@@ -321,14 +347,15 @@ console.log("Default change event handler. Key:" + data.key + ", Value:" + strVa
    *   {'key': 123, 'value': 8484},
    *   ...
    * ]
+   * @returns {array}
    */
-  _data: function (data) {
+  _preprocessData: function (data) {
     let i, len, dataMin, dataMax, oItem;
 
     this._dataMaxDepth = 1;
 
-    if (!data || !data.length) {
-      throw new Error('Invalid data');
+    if (!data.length) {
+      return data;
     }
 
     data.sort(this._dataCompare);
@@ -368,7 +395,7 @@ console.log("Default change event handler. Key:" + data.key + ", Value:" + strVa
     this._dataRange = (dataMax.key - dataMin.key) + 1;
     this._dataOffset = dataMin.key;
 
-    this.options.data = data;
+    return data;
   },
 
   /**
@@ -400,6 +427,10 @@ console.log("Default change event handler. Key:" + data.key + ", Value:" + strVa
    */
   _draw: function () {
     let i, len, x, y, label;
+
+    if (!this.options.data.length) {
+      return;
+    }
 
     this._container.find('svg#dataBg').remove();
 
