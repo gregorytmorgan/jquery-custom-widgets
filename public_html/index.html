@@ -154,9 +154,7 @@ jQuery Timeline-control Widget Tests
             strValue = data.value;
           }
 
-          console.log("This is a " + this.widgetName + " instance.");
-
-          console.log("User defined change handler. Key is '" + data.key  + "', Value is " + strValue);
+          console.log(this.widgetName + ".change - User defined change handler. Key is '" + data.key  + "', Value is " + strValue);
         }).bind(dataConstraint));
 
         //
@@ -169,7 +167,7 @@ jQuery Timeline-control Widget Tests
           height: '48px',
           data: testData10,
           "change": function (event, data) {
-            console.log(this.widgetName + ' custom change #1 ' + data.key + ", old:" + data.oldValue + ", new:" + data.value);
+            console.log(this.widgetName + '.change - #1 ' + data.key + ", old:" + data.oldValue + ", new:" + data.value);
           }
         });
 
@@ -177,7 +175,7 @@ jQuery Timeline-control Widget Tests
 
         // update the change handler
         myBarView.option('change', function (event, data)  {
-            console.log(this.widgetName + ' custom change #2 ' + data.key + ", old:" + data.oldValue + ", new:" + data.value);
+            console.log(this.widgetName + '.change - #2 ' + data.key + ", old:" + data.oldValue + ", new:" + data.value);
           });
 
         // confirm change handler update + test auto redraw(?)
@@ -231,11 +229,11 @@ jQuery Timeline-control Widget Tests
             alert (e.message);
           }
 
-          try {
-            myBarView.option('data', testData);
-          } catch (e) {
-            alert (e.message);
-          }
+//          try {
+//            myBarView.option('data', testData);
+//          } catch (e) {
+//            alert (e.message);
+//          }
 
 //          try {
 //            myBarViewConstraint.option('data', testData);

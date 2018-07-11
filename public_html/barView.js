@@ -131,30 +131,23 @@ $.widget("custom.barView", {
     cloneData: true,
 
     /**
-     * Default option change event handler.
+     * Option change event handler.
      *
-     * @param {object} event jQuery Event.
-     * @param {object} data Changed data. Varies by event. Typically keys are:
-     *  'key', 'oldValue', 'value'.
-     * @returns {undefined}
+     * The default handler is set in _create().
+     *
+     * handler(jQueryEvent, data)
      */
-    change: function (event, data) {
-      let strVal = (data.key === 'data') ? "data object" : data.value;
-console.log("Default change event handler. Key:" + data.key + ", Value:" + strVal);
-    },
+    change: null,
 
     /**
-     * Default resize event handler.
+     * Resize event handler.
      *
-     * @param {object} event jQuery Event.
-     * @param {object} data The widget.
-     * @returns {undefined}
+     * The default handler is set in _create().
+     *
+     * handler(jQueryEvent, data)
      */
-    afterResize: function (event, data) {
-      let widget = data.context;
-      widget._draw();
-    }
-  },
+    afterResize: null
+  }, // options
 
   /*
    * Private methods
@@ -192,8 +185,14 @@ console.log("Default change event handler. Key:" + data.key + ", Value:" + strVa
       this._setOption("height", this.options.height);
     }
 
-    // setup selection window
-    let widget = this;  // ToDO: fix this, isn't there a way to bind scope????????????????????
+    this._setOption('change', function (event, data) {
+      let strVal = (data.key === 'data') ? "data object" : data.value;
+console.log(this.widgetName + " Default change event handler. Key:" + data.key + ", Value:" + strVal);
+    });
+
+    this._setOption('afterResize',function (event, data) {
+      this._draw();
+    });
 
     /**
      * On resize event handler.
@@ -203,51 +202,47 @@ console.log("Default change event handler. Key:" + data.key + ", Value:" + strVa
      *
      * @param {object} event
      */
-    $(window).on('resize', function (event) {
+    $(window).on('resize', (function (event) {
       let bResize = false,
         oldValue = {
-        "w": widget._width,
-        "h": widget._height
+        "w": this._width,
+        "h": this._height
       };
 
-      if (widget._container.width() !== widget._width) {
-        widget._width = Math.floor(widget._container.width());
+      if (this._container.width() !== this._width) {
+        this._width = Math.floor(this._container.width());
         bResize = true;
       }
 
-      if (widget._container.height() !== widget._height) {
-        widget._height = Math.floor(widget._container.height());
+      if (this._container.height() !== this._height) {
+        this._height = Math.floor(this._container.height());
         bResize = true;
       }
 
       if (bResize) {
-        widget._trigger("afterResize", event, {"oldValue": oldValue, "context": widget});
+        this._trigger("afterResize", event, {oldValue: oldValue, value: {"w":this._width, "h":this._height}});
       }
-    });
+    }).bind(this));
 
     // load the data
     //
     // Note: display width needs to be set before data is set.
-    if (this.options.data !== null) {
-      this._setOption('data', this.options.data);
-    }
+    //if (this.options.data !== null) {
+    //  this._setOption('data', this.options.data);
+    //}
   },
 
   /**
    *
    * @param {string} key Option name.
    * @param {mixed} value New value.
-   * @param {mixed} oldValue The previous value of the option.
-   * @param {object} context The context the option was changed from, ofter the widget instance.
    * @returns {undefined}
    */
   _setOption: function (key, value) {
-    let oldValue, data,
-      context = this;
+    let data, newValue;
+console.log(this.widgetName + '._setOption - entry');
 
-    if (this.options[key] === undefined) {
-      throw new Error('Invalid option: ' + key);
-    }
+console.log(this.widgetName + '._setOption - key: ' + key);
 
     oldValue = this.options[key];
 
@@ -257,18 +252,25 @@ console.log("Default change event handler. Key:" + data.key + ", Value:" + strVa
         break;
       case "data":
         data = (this.options.cloneData) ? jQuery.extend(true, [], value) : value;
-        data = this._preprocessData(data);
+        value = this._preprocessData(data);
         this._isModified = true;
         break;
       case "width":
-        this._container.css({"width":this.options.width});
+        this._container.css({"width": this.options.width});
         this._width = Math.floor(this._container.width());
         //this._isModified = true;
         break;
       case "height":
-        this._container.css({"height":this.options.height});
+        this._container.css({"height": this.options.height});
         this._height = Math.floor(this._container.height());
         //this._isModified = true;
+        break;
+      case "create":
+      case "change":
+      case "afterResize":
+        if (typeof value === 'function') {
+          value = value.bind(this);
+        }
         break;
       default:
         // empty
@@ -281,7 +283,9 @@ console.log("Default change event handler. Key:" + data.key + ", Value:" + strVa
     }
 
     // do we need to manually trigger a change event?
-    this._trigger("change", null, {key: key, value: value, oldValue:oldValue, context:context});
+    this._trigger("change", null, {key: key, value: value, oldValue:oldValue});
+
+console.log(this.widgetName + '._setOption - exit');
   },
 
   /**
@@ -293,7 +297,9 @@ console.log("Default change event handler. Key:" + data.key + ", Value:" + strVa
    * @returns {undefined}
    */
   _setOptions: function (options) {
+console.log(this.widgetName + '._setOptions - entry');
     this._super(options);
+console.log(this.widgetName + '._setOptions - exit');
   },
 
   /**
