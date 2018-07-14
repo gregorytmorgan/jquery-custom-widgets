@@ -11,9 +11,10 @@ module.exports = function(config) {
           'public_html/css/barView.css',
 
           // vendor libraries
+          'public_html/vendor/d3.js',
           'public_html/vendor/jquery.js',
           'public_html/vendor/jquery-ui.js',
-          //'public_html/vendor/qunit.js',
+          //'public_html/vendor/qunit.js', // not necessary since it's loaded as a framework
           'public_html/vendor/qunit-tap.js',
 
           // project code
