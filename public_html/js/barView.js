@@ -160,45 +160,43 @@ $.widget("custom.barView", {
    * @returns {undefined}
    */
   _create: function () {
+    var key;
     // validate the user options
-    for (let key in this.options) {
-      if (this.options.hasOwnProperty(key)) {
-        if (!(key in $.custom.barView.prototype.options)) {
-          throw new Error('Invalid option: ' + key);
-        }
+    for (key in this.options) {
+      if (this.options.hasOwnProperty(key) && !$.custom.barView.prototype.options.hasOwnProperty(key)) {
+        throw new Error('Invalid option: ' + key);
       }
     }
 
-    this._container = $('<div class="' + this.widgetName +'"></div>');
+    this._container = $('<div id="' + this.widgetName + this.uuid + '" class="' + this.widgetName +'"></div>');
 
     // assemble the elements early so we can get width, height, ...
     this._container.appendTo(this.element);
 
-    this._width = Math.floor(this._container.width());
-    this._height = Math.floor(this._container.height());
-
-    if (this.options.width !== $.custom.barView.prototype.options.width) {
-      this._setOption("width", this.options.width);
-    }
-
-    if (this.options.height !== $.custom.barView.prototype.options.height) {
-      this._setOption("height", this.options.height);
-    }
+    //
+    // default handlers are set in the constructor so we can bind them to the widget
+    //
 
     this._setOption('change', function (event, data) {
-      let strVal = (data.key === 'data') ? "data object" : data.value;
-console.log(this.widgetName + " Default change event handler. Key:" + data.key + ", Value:" + strVal);
+//console.log(this.widgetName + ".change Default handler. Key:" + data.key + ", Value:" + data.value + ', oldValue:' + data.oldValue);
     });
 
     this._setOption('afterResize',function (event, data) {
       this._draw();
     });
 
+    // call setOptions on all options.
+    for (key in this.options) {
+      if (this.options.hasOwnProperty(key)) {
+        this._setOption(key, this.options[key]);
+      }
+    }
+
     /**
      * On resize event handler.
      *
      * Hook the browser window resize event.  If the window resize cause the widget to
-     * resize, then trigger the widgets custom 'afterResize' event
+     * resize, then trigger the widgets custom 'afterResize' event.
      *
      * @param {object} event
      */
@@ -230,7 +228,8 @@ console.log(this.widgetName + " Default change event handler. Key:" + data.key +
     //if (this.options.data !== null) {
     //  this._setOption('data', this.options.data);
     //}
-  },
+
+  }, // create
 
   /**
    *
@@ -239,10 +238,11 @@ console.log(this.widgetName + " Default change event handler. Key:" + data.key +
    * @returns {undefined}
    */
   _setOption: function (key, value) {
-    let data, newValue;
-console.log(this.widgetName + '._setOption - entry');
+    let data, oldValue, lval, rval;
 
-console.log(this.widgetName + '._setOption - key: ' + key);
+//console.log(this.widgetName + '._setOption - entry');
+
+//console.log(this.widgetName + '._setOption - key: ' + key);
 
     oldValue = this.options[key];
 
@@ -256,12 +256,12 @@ console.log(this.widgetName + '._setOption - key: ' + key);
         this._isModified = true;
         break;
       case "width":
-        this._container.css({"width": this.options.width});
+        this._container.css({"width": value});
         this._width = Math.floor(this._container.width());
         //this._isModified = true;
         break;
       case "height":
-        this._container.css({"height": this.options.height});
+        this._container.css({"height": value});
         this._height = Math.floor(this._container.height());
         //this._isModified = true;
         break;
@@ -274,7 +274,7 @@ console.log(this.widgetName + '._setOption - key: ' + key);
         break;
       default:
         // empty
-    }
+    } // switch
 
     this._super(key, value);
 
@@ -282,10 +282,37 @@ console.log(this.widgetName + '._setOption - key: ' + key);
       this._draw();
     }
 
-    // do we need to manually trigger a change event?
-    this._trigger("change", null, {key: key, value: value, oldValue:oldValue});
+    // chk if the new value is different. Use JSON.stringify() generally, but use
+    // valueOf for functions.
 
-console.log(this.widgetName + '._setOption - exit');
+    if (value === undefined || value === null) {
+      lval = "UNDEFINED_OR_NULL";
+    } else if (typeof value === 'function') {
+      //lval = value.valueOf();
+      lval = value;
+    } else {
+      lval = JSON.stringify(value);
+    }
+
+    if (oldValue === undefined || oldValue === null) {
+      rval = "UNDEFINED_OR_NULL";
+    } else if (typeof oldValue === 'function') {
+      //rval = oldValue.valueOf();
+      rval = oldValue;
+    } else {
+      rval = JSON.stringify(oldValue);
+    }
+
+    if (lval !== rval) {
+
+//console.log('+++++++++++++++++');
+//console.log(lval);
+//console.log(rval);
+
+      this._trigger("change", null, {key: key, value: value, oldValue:oldValue});
+    }
+
+//console.log(this.widgetName + '._setOption - exit');
   },
 
   /**
@@ -297,9 +324,9 @@ console.log(this.widgetName + '._setOption - exit');
    * @returns {undefined}
    */
   _setOptions: function (options) {
-console.log(this.widgetName + '._setOptions - entry');
+//console.log(this.widgetName + '._setOptions - entry');
     this._super(options);
-console.log(this.widgetName + '._setOptions - exit');
+//console.log(this.widgetName + '._setOptions - exit');
   },
 
   /**
@@ -467,7 +494,7 @@ console.log(this.widgetName + '._setOptions - exit');
    * @returns {undefined}
    */
   _destroy: function() {
-    // ToDo: ????
+console.log(this.widgetName + this.uuid + '._destroy - entry/exit');
   }
 
   /*
