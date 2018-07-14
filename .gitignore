@@ -4,3 +4,6 @@
 /Gruntfile.js
 /gulpfile.js
 /nbproject
+node_modules/
+*.log
+public_html/vendor/
