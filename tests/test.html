@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <meta http-equiv='content-type' content='text/html; charset=utf-8' />
+  <title>QUnit Test Runner</title>
+  <!-- this file resides in [site_root]/tests, so ref files by traversing to root first -->
+
+  <!-- vendor css -->
+  <link rel="stylesheet" href="../vendor/qunit.css">
+
+  <!-- project css -->
+  <link rel="stylesheet" href="../css/barView.css">
+
+  <!-- vendor libraries -->
+  <script src="../vendor/jquery.js"></script>
+  <script src="../vendor/jquery-ui.js"></script>
+  <script src="../vendor/qunit.js"></script>
+  <script src="../vendor/qunit-tap.js"></script>
+  <script>
+    qunitTap(QUnit, function() { console.log.apply(console, arguments); });
+  </script>
+
+  <!-- project libraries -->
+  <script src='../js/barView.js'></script>
+</head>
+<body>
+  <div id="qunit"></div> <!-- QUnit fills this with results, etc -->
+  <div id='qunit-fixture'></div> <!-- Individual test will append necessary DOM elements here -->
+
+  <!-- test cases -->
+  <script src="barView-test.js"></script>
+</body>
+</html>
+
