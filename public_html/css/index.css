@@ -59,9 +59,12 @@ body {
   margin: .5em 0 0 1%;
 }
 
-.content button,
-.content select
+.test-selector-container button,
+.test-selector-container select
 {
   height: 2em;
 }
 
+.test-selector-container input {
+  height: 21px;
+}

@@ -211,7 +211,7 @@ jQuery Timeline-control Widget
         //
         // Note: the click event also triggers on 'keypress enter'
         //
-        $('#bGo').on('click', function (event) {
+        $('#bGo1').on('click', function (event) {
           let idx, testData, size,
             selectValue = $('#dataSet').val();
 
@@ -241,6 +241,35 @@ jQuery Timeline-control Widget
 //            alert (e.message);
 //          }
 
+        }); // bGo1
+
+        //
+        //
+        //
+        $('#bGo2').on('click', function (event) {
+          let value;
+
+          try {
+            value = myBarView.option($('#optionInput').val());
+          } catch (e) {
+            alert (e.message);
+          }
+
+          $('#optionInputVal').val(value);
+        });
+
+        //
+        //
+        //
+        $('#bGo3').on('click', function (event) {
+          let value;
+
+          try {
+            value = myBarView.option($('#optionInput').val(), $('#optionInputVal').val());
+          } catch (e) {
+            alert (e.message);
+          }
+
         });
 
       });
@@ -257,7 +286,7 @@ jQuery Timeline-control Widget
       <div id="widgetElement2" class="widgetElement full"></div>
       <div id="widgetElement3" class="widgetElement full"></div>
 
-      <div class="test-selector-container">
+      <div id="loadDataTest" class="test-selector-container">
         <select id="dataSet">
           <option value="0">Test Data #0</option>
           <option value="1">Test Data #1</option>
@@ -267,8 +296,20 @@ jQuery Timeline-control Widget
           <option value="5" selected>Test Data #10</option>
           <option value="N">Test Data #N</option>
         </select>
-        <button id="bGo">Load Data</button>
+        <button id="bGo1">Load Data</button>
       </div>
+
+      <div id="optionTest" class="test-selector-container">
+        <select id="optionInput">
+          <option value="width">Width (CSS)</option>
+          <option value="height">Height (CSS)</option>
+          <option value="cloneData">cloneData (Bool)</option>
+        </select>
+        <input id="optionInputVal">
+        <button id="bGo2">Get</button>
+        <button id="bGo3">Set</button>
+      </div>
+
     </div><!-- content -->
 
     <div id="debugConsole"></div>
