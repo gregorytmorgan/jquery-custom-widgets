@@ -465,10 +465,10 @@ $.widget("custom.barView", {
       return;
     }
 
-    this._container.find('svg#dataBg').remove();
+    this._container.find('svg.dataBg').remove();
 
     let d3tl = d3.select(this._container[0]); // get the raw DOM element
-    let d3svg = d3tl.append("svg").attr("id", 'dataBg').attr("width", '100%').attr("height", '100%');
+    let d3svg = d3tl.append("svg").attr("id", this.uuidv4()).classed('dataBg', true).attr("width", '100%').attr("height", '100%');
 
     for (i = 0, len = this.options.data.length; i < len; i += 1) {
       if ($.type(this.options.data[i]) === "array") {
@@ -482,11 +482,24 @@ $.widget("custom.barView", {
       }
 
       d3svg.append("line")
-              .attr("x1", x).attr("y1", this._height)
-              .attr("x2", x).attr("y2", this._height - y)
-              .attr("stroke-width", 2).attr("stroke", "blue")
-              .append("title").text(label);
+        .attr("x1", x).attr("y1", this._height)
+        .attr("x2", x).attr("y2", this._height - y)
+        .attr("stroke-width", 2).attr("stroke", "blue")
+        .append("title").text(label);
     }
+
+    this._isModified = false;
+  },
+
+  /**
+   * Create a RFC4122 version 4 compliant UUID.
+   *
+   * @returns {Number|Array}
+   */
+  uuidv4: function () {
+    return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+      (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+    )
   },
 
   /**
@@ -501,7 +514,6 @@ console.log(this.widgetName + this.uuid + '._destroy - entry/exit');
    * Public methods
    *
    */
-
 
 });
 
