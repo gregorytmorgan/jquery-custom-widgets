@@ -192,6 +192,11 @@ $.widget("custom.barView", {
       }
     }
 
+    // after setting all the options, see if we triggered a draw.
+    if (this._isModified) {
+      this._draw();
+    }
+
     /**
      * On resize event handler.
      *
@@ -222,13 +227,6 @@ $.widget("custom.barView", {
       }
     }).bind(this));
 
-    // load the data
-    //
-    // Note: display width needs to be set before data is set.
-    //if (this.options.data !== null) {
-    //  this._setOption('data', this.options.data);
-    //}
-
   }, // create
 
   /**
@@ -258,12 +256,12 @@ $.widget("custom.barView", {
       case "width":
         this._container.css({"width": value});
         this._width = Math.floor(this._container.width());
-        //this._isModified = true;
+        this._isModified = true;
         break;
       case "height":
         this._container.css({"height": value});
         this._height = Math.floor(this._container.height());
-        //this._isModified = true;
+        this._isModified = true;
         break;
       case "create":
       case "change":
@@ -277,10 +275,6 @@ $.widget("custom.barView", {
     } // switch
 
     this._super(key, value);
-
-    if (this._isModified) {
-      this._draw();
-    }
 
     // chk if the new value is different. Use JSON.stringify() generally, but use
     // valueOf for functions.
@@ -304,11 +298,6 @@ $.widget("custom.barView", {
     }
 
     if (lval !== rval) {
-
-//console.log('+++++++++++++++++');
-//console.log(lval);
-//console.log(rval);
-
       this._trigger("change", null, {key: key, value: value, oldValue:oldValue});
     }
 
@@ -326,6 +315,10 @@ $.widget("custom.barView", {
   _setOptions: function (options) {
 //console.log(this.widgetName + '._setOptions - entry');
     this._super(options);
+
+    if (this._isModified) {
+      this._draw();
+    }
 //console.log(this.widgetName + '._setOptions - exit');
   },
 
