@@ -14,6 +14,7 @@ module.exports = function(config) {
           'public_html/vendor/jquery.js',
           'public_html/vendor/jquery-ui.js',
           'public_html/vendor/qunit-tap.js',
+          'public_html/vendor/d3.js',
 
           // project code
           'public_html/js/barView.js',
