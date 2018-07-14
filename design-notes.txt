@@ -1,0 +1,43 @@
+//
+// Notes
+//
+
+Running Tests
+===============================
+
+Within Netbeans
+-------------------------------
+
+Using the Project->run->test menu will send a 'run' command to a Karma instance
+that will the run Qunit tests based on the karma.conf.js file. This typically will
+pop open a browser window which will display the std Qunit test UI. It is possible
+to test in multiple browsers at once. Additionally, based on the karma config file,
+it is possible to run the tests in headless Chrome and view the results as console
+or logfile output.
+
+Note: phantomJS isn't a valid headless browser any longer due
+to lack of ES6 support.
+
+There were problems with the Qunit tests being started before a previous test run
+had ended. This was fixed in /usr/local/lib/node_modules/karma-qunit/lib/adapter.js by
+changing qunitOldTimeout, 13 --> 500.
+
+
+From Command-line
+-------------------------------
+
+Running tests from the command line,
+
+> qunit myTest.js
+
+isn't practical due to getting the necessary libraries loaded.  Use karma instead.
+
+> karma start karma.single-run.conf.js
+
+This approach uses karma config file with singleRun:true.  This config currently
+output to the terminal, but it's possible to start a browser instance as well.
+
+
+
+
+// end file
