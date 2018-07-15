@@ -33,9 +33,7 @@
  *  ...
  *
  *  @Todo Fix display mapping, need bucketing not pixel mapping.
- *  @Todo Fix display so that item at left/right edge always have some relief.
  *  @Todo Make selection widow resizeable via handles.
- *  @Todo Add some testing.
  */
 $.widget("custom.barView", {
 
@@ -178,6 +176,9 @@ $.widget("custom.barView", {
     //
 
     this._setOption('change', function (event, data) {
+
+//console.log(JSON.stringify(data));
+
 //console.log(this.widgetName + ".change Default handler. Key:" + data.key + ", Value:" + data.value + ', oldValue:' + data.oldValue);
     });
 
@@ -230,6 +231,22 @@ $.widget("custom.barView", {
   }, // create
 
   /**
+   * Override the option call to we can validate the options.
+   *
+   * @param {type} key
+   * @param {type} value
+   * @returns {barViewAnonym$0@call;_superApply}
+   */
+  option: function (key, value) {
+    if (!this.options.hasOwnProperty(key)) {
+      throw new Error("Invalid option " + key);
+    }
+
+    return this._superApply(arguments);
+  },
+
+  /**
+   * Set a single key in this.options.
    *
    * @param {string} key Option name.
    * @param {mixed} value New value.
@@ -246,44 +263,47 @@ $.widget("custom.barView", {
 
     switch (key) {
       case "cloneData":
-        value = !!value;
+        value = $.trim(value.toString().toLowerCase());
+        this.options.cloneData = (value === "0" || value === "false") ? false : true;
         break;
       case "data":
         data = (this.options.cloneData) ? jQuery.extend(true, [], value) : value;
-        value = this._preprocessData(data);
         this._isModified = true;
+        this.options.data = this._preprocessData(data);
         break;
       case "width":
-        this._container.css({"width": value});
+        this._container.css({key: value});
         this._width = Math.floor(this._container.width());
         this._isModified = true;
+        this.options.width = value;
         break;
       case "height":
         this._container.css({"height": value});
         this._height = Math.floor(this._container.height());
         this._isModified = true;
+        this.options.height = value;
         break;
       case "create":
       case "change":
       case "afterResize":
         if (typeof value === 'function') {
-          value = value.bind(this);
+          this.options[key] = value.bind(this);
+        } else if (typeof value === 'undefined' || value === null) {
+          this.options[key] = null;
+        } else {
+          throw new Error('Invalid function');
         }
         break;
       default:
-        // empty
+        this._super(key, value);
     } // switch
 
-    this._super(key, value);
-
-    // chk if the new value is different. Use JSON.stringify() generally, but use
-    // valueOf for functions.
-
+    // Check if the new value is different from old. Use JSON.stringify() generally,
+    // but use valueOf() for functions.
     if (value === undefined || value === null) {
       lval = "UNDEFINED_OR_NULL";
     } else if (typeof value === 'function') {
-      //lval = value.valueOf();
-      lval = value;
+      lval = value.valueOf();
     } else {
       lval = JSON.stringify(value);
     }
@@ -291,23 +311,22 @@ $.widget("custom.barView", {
     if (oldValue === undefined || oldValue === null) {
       rval = "UNDEFINED_OR_NULL";
     } else if (typeof oldValue === 'function') {
-      //rval = oldValue.valueOf();
-      rval = oldValue;
+      rval = oldValue.valueOf();
     } else {
       rval = JSON.stringify(oldValue);
     }
 
     if (lval !== rval) {
-      this._trigger("change", null, {key: key, value: value, oldValue:oldValue});
+      this._trigger("change", null, {key: key, value: this.options[key], oldValue:oldValue});
     }
 
 //console.log(this.widgetName + '._setOption - exit');
   },
 
   /**
-   * Set the options this.options at instantiation.
+   * Set multiple keys in this.options.
    *
-   * This is called automatically by the base widget class.
+   * This is also called by widget.option(key, value)
    *
    * @param {object} options
    * @returns {undefined}
@@ -461,7 +480,7 @@ $.widget("custom.barView", {
     this._container.find('svg.dataBg').remove();
 
     let d3tl = d3.select(this._container[0]); // get the raw DOM element
-    let d3svg = d3tl.append("svg").attr("id", this.uuidv4()).classed('dataBg', true).attr("width", '100%').attr("height", '100%');
+    let d3svg = d3tl.append("svg").attr("id", this._uuid()).classed('dataBg', true).attr("width", '100%').attr("height", '100%');
 
     for (i = 0, len = this.options.data.length; i < len; i += 1) {
       if ($.type(this.options.data[i]) === "array") {
@@ -489,7 +508,7 @@ $.widget("custom.barView", {
    *
    * @returns {Number|Array}
    */
-  uuidv4: function () {
+  _uuid: function () {
     return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
       (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
     )
