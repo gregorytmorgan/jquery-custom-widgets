@@ -124,6 +124,29 @@ QUnit.test("Constructor", function(assert) {
 /**
  *
  */
+QUnit.test("Test invalid options", function(assert) {
+    let option_name = 'foo';
+
+    assert.throws(
+      function () {
+        this.myBarView.option(option_name);
+      },
+      new Error("Invalid option " + option_name),
+      "Getting an invalid option should throw an exception"
+    );
+
+    assert.throws(
+      function () {
+        this.myBarView.option(option_name, "bar");
+      },
+      new Error("Invalid option " + option_name),
+      "Setting an invalid option should throw an exception"
+    );
+});
+
+/**
+ *
+ */
 QUnit.test("Test option cloneData - get", function(assert) {
     // Result should be a bool. 'cloneData' is simple option; when set, the provided
     // data remain unchanged.
