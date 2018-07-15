@@ -145,9 +145,63 @@ QUnit.test("Test invalid options", function(assert) {
 });
 
 /**
+ * Dynamically generate a test function for use in "Test option change events"
+ *
+ * Use a closure to generate a custom function for each option tested.
+ *
+ * @param {type} newValue
+ * @param {type} oldValue
+ * @param {type} assert
+ * @returns {Function}
+ */
+function createChangeHandler(newValue, oldValue, assert) {
+  return function (event, data) {
+    if (jQuery.inArray(data.key, ["change", "afterResize"]) !== -1) {
+      assert.ok(true, data.key + ': skipped function compare');
+    } else {
+      assert.deepEqual(data.value, newValue, data.key + ': data.value === newValue');
+      assert.deepEqual(data.oldValue, oldValue, data.key + ': data.oldValue === oldValue');
+    }
+  };
+};
+
+/*
+ * For each non function option verify a change event is triggered and the event
+ * contains correct new/old values.
+ */
+QUnit.test("Test option change events", function(assert) {
+  let newValue, oldValue;
+
+  // option cloneData change
+  oldValue = $.custom.barView.prototype.options.cloneData;
+  newValue = !oldValue;
+  this.myBarView.option('change', createChangeHandler(newValue, oldValue, assert));
+  this.myBarView.option('cloneData', newValue);
+
+  // option width change
+  oldValue = $.custom.barView.prototype.options.width;
+  newValue = '97%';
+  this.myBarView.option('change', createChangeHandler(newValue, oldValue, assert));
+  this.myBarView.option('width', newValue);
+
+  // option height change
+  oldValue = $.custom.barView.prototype.options.height;
+  newValue = '200px';
+  this.myBarView.option('change', createChangeHandler(newValue, oldValue, assert));
+  this.myBarView.option('height', newValue);
+
+  // option data change
+  oldValue = $.custom.barView.prototype.options.data;
+  newValue = [
+    {'key':0, 'value': 0},
+    {'key':1, 'value': 1}
+  ];
+  this.myBarView.option('change', createChangeHandler(newValue, oldValue, assert));
+  this.myBarView.option('data', newValue);
+});
+
+/**
  * Result should be a bool.
- *
- *
  */
 QUnit.test("Test option cloneData - get", function(assert) {
     let expected = $.custom.barView.prototype.options.cloneData;
