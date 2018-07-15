@@ -244,7 +244,7 @@ jQuery Timeline-control Widget
         }); // bGo1
 
         //
-        //
+        // Get option
         //
         $('#bGo2').on('click', function (event) {
           let value;
@@ -259,17 +259,37 @@ jQuery Timeline-control Widget
         });
 
         //
-        //
+        // Set option
         //
         $('#bGo3').on('click', function (event) {
-          let value;
+          let value, error,
+            option = $('#optionInput').val(),
+            optionInputVal = $('#optionInputVal');
 
-          try {
-            value = myBarView.option($('#optionInput').val(), $('#optionInputVal').val());
-          } catch (e) {
-            alert (e.message);
+          value = $.trim(optionInputVal.val());
+
+          if (option === 'width') {
+            value = (value === "0" || value.toLowerCase() === "false") ? false : true;
           }
 
+          optionInputVal.css('opacity', .25);
+
+          try {
+            value = myBarView.option(option, value);
+            $('#indicator').css('backgroundColor', 'green');
+            error = false;
+          } catch (e) {
+            $('#indicator').css('backgroundColor', 'red');
+            alert (e.message);
+            error = true;
+          }
+
+          optionInputVal.fadeTo(3000, 1);
+
+          // get the current value
+          if (!error) {
+            $('#bGo2').trigger('click');
+          }
         });
 
       });
@@ -303,9 +323,11 @@ jQuery Timeline-control Widget
         <select id="optionInput">
           <option value="width">Width (CSS)</option>
           <option value="height">Height (CSS)</option>
-          <option value="cloneData">cloneData (Bool)</option>
+          <option value="cloneData" selected>cloneData (Bool)</option>
         </select>
-        <input id="optionInputVal">
+        <div id="indicator">
+          <input id="optionInputVal">
+        </div>
         <button id="bGo2">Get</button>
         <button id="bGo3">Set</button>
       </div>

@@ -68,3 +68,7 @@ body {
 .test-selector-container input {
   height: 21px;
 }
+
+#indicator {
+  display: inline-block;
+}
