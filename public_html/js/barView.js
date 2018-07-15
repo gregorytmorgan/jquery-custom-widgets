@@ -159,44 +159,29 @@ $.widget("custom.barView", {
    */
   _create: function () {
     var key;
-    // validate the user options
-    for (key in this.options) {
-      if (this.options.hasOwnProperty(key) && !$.custom.barView.prototype.options.hasOwnProperty(key)) {
-        throw new Error('Invalid option: ' + key);
-      }
-    }
+
+    this._super();
 
     this._container = $('<div id="' + this.widgetName + this.uuid + '" class="' + this.widgetName +'"></div>');
 
     // assemble the elements early so we can get width, height, ...
     this._container.appendTo(this.element);
 
-    //
-    // default handlers are set in the constructor so we can bind them to the widget
-    //
-
-    this._setOption('change', function (event, data) {
-
-//console.log(JSON.stringify(data));
-
-//console.log(this.widgetName + ".change Default handler. Key:" + data.key + ", Value:" + data.value + ', oldValue:' + data.oldValue);
-    });
-
-    this._setOption('afterResize',function (event, data) {
-      this._draw();
-    });
-
     // call setOptions on all options.
-    for (key in this.options) {
-      if (this.options.hasOwnProperty(key)) {
-        this._setOption(key, this.options[key]);
-      }
+    for (key in $.custom.barView.prototype.options) {
+      this._setOption(key, this.options[key] || $.custom.barView.prototype.options[key]);
     }
 
     // after setting all the options, see if we triggered a draw.
     if (this._isModified) {
       this._draw();
     }
+
+    // default handlers are set in the constructor so we can bind them to the widget.
+    // Setting them statically within the default options object doesn't set the proper context.
+    this._setOption('afterResize',function (event, data) {
+      this._draw();
+    });
 
     /**
      * On resize event handler.
