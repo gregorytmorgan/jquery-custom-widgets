@@ -94,6 +94,10 @@ QUnit.module("BarView", {
   }
 });
 
+//
+// Tests for basic requirements
+//
+
 /**
  *
  */
@@ -121,6 +125,10 @@ QUnit.test("Constructor", function(assert) {
     assert.strictEqual(this.myBarView.widgetName, 'barView', 'BarView object retrieval from DOM - object has uuid');
 });
 
+//
+// Tests for general option functionality
+//
+
 /**
  *
  */
@@ -145,13 +153,12 @@ QUnit.test("Test invalid options", function(assert) {
 });
 
 /**
- * Dynamically generate a test function for use in "Test option change events"
+ * Helper function. Dynamically generate a custom test function for each option
+ * tested. Used by the "Test option change events" test.
  *
- * Use a closure to generate a custom function for each option tested.
- *
- * @param {type} newValue
- * @param {type} oldValue
- * @param {type} assert
+ * @param {mixed} newValue The new option setting.
+ * @param {mixed} oldValue The current option setting.
+ * @param {object} assert Qunit assert
  * @returns {Function}
  */
 function createChangeHandler(newValue, oldValue, assert) {
@@ -201,71 +208,115 @@ QUnit.test("Test option change events", function(assert) {
 });
 
 /**
- * Result should be a bool.
+ * Option event handler - check context/scope.
+ */
+QUnit.test("Test event handler context", function(assert) {
+  var expectedWidgetName = this.myBarView.widgetName;
+  this.myBarView.option('change', function (event, data)  {
+    assert.strictEqual(this.widgetName, expectedWidgetName, "Custom callback context should be the widget");
+  });
+});
+
+//
+// Test option behavior specific to each option
+//
+
+/**
+ * Option cloneData - get, Result should be a bool.
  */
 QUnit.test("Test option cloneData - get", function(assert) {
-    let expected = $.custom.barView.prototype.options.cloneData;
-    assert.strictEqual(this.myBarView.option('cloneData'), expected, 'get "cloneData"');
+  let expected = $.custom.barView.prototype.options.cloneData;
+  assert.strictEqual(this.myBarView.option('cloneData'), expected, 'get "cloneData"');
 });
 
 /**
- * "false", "0" should result in a value of false.
+ * Option cloneData - set,"false" and "0" should result in a setting of false.
  */
 QUnit.test("Test option cloneData - set", function(assert) {
-    let expected = !$.custom.barView.prototype.options.cloneData;
+  let expected = !$.custom.barView.prototype.options.cloneData;
 
-    this.myBarView.option('cloneData', expected);
-    assert.strictEqual(this.myBarView.option('cloneData'), expected, 'Set cloneData');
+  this.myBarView.option('cloneData', expected);
+  assert.strictEqual(this.myBarView.option('cloneData'), expected, 'Set cloneData');
 
-    this.myBarView.option('cloneData', "false");
-    assert.strictEqual(this.myBarView.option('cloneData'), false, 'Set cloneData to "false"');
+  this.myBarView.option('cloneData', "false");
+  assert.strictEqual(this.myBarView.option('cloneData'), false, 'Set cloneData to "false"');
 
-    this.myBarView.option('cloneData', "0");
-    assert.strictEqual(this.myBarView.option('cloneData'), false, 'Set cloneData to "0"');
+  this.myBarView.option('cloneData', "0");
+  assert.strictEqual(this.myBarView.option('cloneData'), false, 'Set cloneData to "0"');
 });
 
 /**
- *
+ * Option width - get, Result should be a CSS string.
+ */
+QUnit.test("Test option width - get", function(assert) {
+  let expected = $.custom.barView.prototype.options.width;
+  assert.strictEqual(this.myBarView.option('width'), expected, 'get "width"');
+});
+
+/**
+ * Option width - set, additionally changes DOM and widget._width.
+ */
+QUnit.test("Test option width - set", function(assert) {
+  let cssValue, svgElement2,
+    newValue = 600, // 600px
+    svgElement1 = this.myBarView._container.find('svg.dataBg');
+
+  cssValue = newValue + 'px';
+
+  // need data to actually redraw, otherwise redraw skipped/svg so id doesn't change
+  this.myBarView.option('data', [{'key':0, 'value': 0}]);
+
+  this.myBarView.option('width', cssValue);
+
+  // chk the actual option value
+  assert.strictEqual(this.myBarView.options.width, cssValue, "Set option 'width'");
+
+  // chk the cached DOM element width
+  assert.strictEqual(this.myBarView._width, newValue, "Option width should set widget._width");
+
+  // chk the actual DOM element width
+  assert.strictEqual(this.myBarView._container.width(), newValue, "Option width should set widget._container width");
+
+  // the svg element id should change
+  svgElement2 = this.myBarView._container.find('svg.dataBg');
+  assert.notStrictEqual(svgElement1.attr('id'), svgElement2.attr('id'), "Option width should trigger a redraw");
+});
+
+/**
+ * Option height - get, Result should be a CSS string.
  */
 QUnit.test("Test option height - get", function(assert) {
-    // 'height' should be a CSS value. 'height' is a simple option; when set, the
-    // provided data remain unchanged, though when set associated variable
-    // (_height + DOM) are changed.
     let expected = $.custom.barView.prototype.options.height;
     assert.strictEqual(this.myBarView.option('height'), expected, 'get "height"');
 });
 
 /**
- *
+ * Option height - set, additionally changes DOM and widget._height.
  */
 QUnit.test("Test option height - set", function(assert) {
-    // 'height' should be a CSS value. 'height' is a simple option; when set, the
-    // provided data remain unchanged, though associated variable (_height + DOM) are changed.
-    let cssValue, newValue;
+  let cssValue, svgElement2,
+    newValue = 64, // 64px
+    svgElement1 = this.myBarView._container.find('svg.dataBg');
 
-    newValue = 64;
-    cssValue = newValue + 'px';
+  cssValue = newValue + 'px';
 
-    this.myBarView.option('height', cssValue);
+  // need data to actually redraw, otherwise redraw skipped/svg so id doesn't change
+  this.myBarView.option('data', [{'key':0, 'value': 0}]);
+  
+  this.myBarView.option('height', cssValue);
 
-    // chk the actual option value
-    assert.strictEqual(this.myBarView.options.height, cssValue, "Set option 'height'");
+  // chk the actual option value
+  assert.strictEqual(this.myBarView.options.height, cssValue, "Set option 'height'");
 
-    // chk the cached DOM element height
-    assert.strictEqual(this.myBarView._height, newValue, "Option height should set _height");
+  // chk the cached DOM element height
+  assert.strictEqual(this.myBarView._height, newValue, "Option height should set widget._height");
 
-    // chk the actual DOM element height
-    assert.strictEqual(this.myBarView._container.height(), newValue, "Option height should set _container height");
-});
+  // chk the actual DOM element height
+  assert.strictEqual(this.myBarView._container.height(), newValue, "Option height should set widget._container height");
 
-/**
- *
- */
-QUnit.test("Test option change - set", function(assert) {
-  var expectedWidgetName = this.myBarView.widgetName;
-  this.myBarView.option('change', function (event, data)  {
-    assert.strictEqual(this.widgetName, expectedWidgetName, "Custom callback context should be the widget");
-   });
+  // the svg element id should change
+  svgElement2 = this.myBarView._container.find('svg.dataBg');
+  assert.notStrictEqual(svgElement1.attr('id'), svgElement2.attr('id'), "Set data should trigger a redraw");
 });
 
 /**
