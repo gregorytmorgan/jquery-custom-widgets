@@ -272,7 +272,7 @@ $.widget("custom.barView", {
         this.options.data = this._preprocessData(data);
         break;
       case "width":
-        this._container.css({key: value});
+        this._container.css({width: value});
         this._width = Math.floor(this._container.width());
         this._isModified = true;
         this.options.width = value;
@@ -473,6 +473,10 @@ $.widget("custom.barView", {
   _draw: function () {
     let i, len, x, y, label;
 
+    // always update isModifed before returning, setting w/h sets isModified and
+    // triggers a redraw even when there is no data
+    this._isModified = false;
+
     if (!this.options.data.length) {
       return;
     }
@@ -499,8 +503,6 @@ $.widget("custom.barView", {
         .attr("stroke-width", 2).attr("stroke", "blue")
         .append("title").text(label);
     }
-
-    this._isModified = false;
   },
 
   /**
