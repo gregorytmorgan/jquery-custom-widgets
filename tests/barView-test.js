@@ -145,13 +145,29 @@ QUnit.test("Test invalid options", function(assert) {
 });
 
 /**
+ * Result should be a bool.
+ *
  *
  */
 QUnit.test("Test option cloneData - get", function(assert) {
-    // Result should be a bool. 'cloneData' is simple option; when set, the provided
-    // data remain unchanged.
     let expected = $.custom.barView.prototype.options.cloneData;
     assert.strictEqual(this.myBarView.option('cloneData'), expected, 'get "cloneData"');
+});
+
+/**
+ * "false", "0" should result in a value of false.
+ */
+QUnit.test("Test option cloneData - set", function(assert) {
+    let expected = !$.custom.barView.prototype.options.cloneData;
+
+    this.myBarView.option('cloneData', expected);
+    assert.strictEqual(this.myBarView.option('cloneData'), expected, 'Set cloneData');
+
+    this.myBarView.option('cloneData', "false");
+    assert.strictEqual(this.myBarView.option('cloneData'), false, 'Set cloneData to "false"');
+
+    this.myBarView.option('cloneData', "0");
+    assert.strictEqual(this.myBarView.option('cloneData'), false, 'Set cloneData to "0"');
 });
 
 /**
