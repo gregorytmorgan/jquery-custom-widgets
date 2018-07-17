@@ -38,9 +38,9 @@
 $.widget("custom.barView", {
 
   /**
-   * if data = [4, 12 20], then the data range is (20 - 4) + 1
+   * if data = [4, 12 20], then the data range is (20 - 4)
    */
-  _dataRange: undefined,
+  _dataWidth: undefined,
 
   /**
    * if data = [4, 12 20], then the offset is 4.
@@ -54,6 +54,20 @@ $.widget("custom.barView", {
    * @type {integer}
    */
   _dataMaxDepth: undefined,
+
+  /**
+   * Numer of pixels of display relief - pre.
+   *
+   * @type {integer}
+   */
+  _preRelief: 10,
+
+  /**
+   * Numer of pixels of display relief - post.
+   *
+   * @type {integer}
+   */
+  _postRelief: 10,
 
   /**
    * The width of the widget in pixels.
@@ -209,7 +223,7 @@ $.widget("custom.barView", {
       }
 
       if (bResize) {
-        this._trigger("afterResize", event, {oldValue: oldValue, value: {"w":this._width, "h":this._height}});
+        this._trigger("afterResize", event, {value: {"w":this._width, "h":this._height}, oldValue: oldValue, context: this});
       }
     }).bind(this));
 
@@ -302,7 +316,7 @@ $.widget("custom.barView", {
     }
 
     if (lval !== rval) {
-      this._trigger("change", null, {key: key, value: this.options[key], oldValue:oldValue});
+      this._trigger("change", null, {value:this.options[key], oldValue: oldValue, context: this, key: key});
     }
 
 //console.log(this.widgetName + '._setOption - exit');
@@ -337,31 +351,31 @@ $.widget("custom.barView", {
       throw new Error('Invalid display width');
     }
 
-    if (!this._dataRange) {
+    if (!this._dataWidth) {
       throw new Error('Invalid data range');
     }
 
-    return this._width / this._dataRange;
+    return (this._preRelief + this._width + this._preRelief) / this._dataWidth;
   },
 
   /**
-   * Given a data index return the display index.
+   * Given a data value return the display X.
    *
-   * @param {integer} index
+   * @param {integer} value
    * @returns {float}
    */
-  _dataIndexToDisplayIndex: function (index) {
-    return (index - this._dataOffset) * this._displayFactor();
+  _dataValueToDisplayX: function (value) {
+    return ((value - this._dataOffset) * this._displayFactor()) + this._preRelief;
   },
 
   /**
-   * Given a display index return the display index.
+   * Given a display x return the data value.
    *
-   * @param {type} index
+   * @param {type} x Display x.
    * @returns {undefined}
    */
-  _displayIndexToDataIndex: function (index) {
-    (index + this._dataOffset) / this._displayFactor(); // ToDo: need to round this to integer?????????????
+  __displayXToDataValue: function (x) {
+    (x + this._dataOffset) / this._displayFactor(); // ToDo: need to round this to integer?????????????
   },
 
   /**
@@ -369,7 +383,7 @@ $.widget("custom.barView", {
    *
    * 1) Sorts data by key.
    * 3) Aggregates duplicate keys
-   * 3) Discovers _dataMaxDepth, _dataRange, _dataOffset
+   * 3) Discovers _dataMaxDepth, _dataWidth, _dataOffset
    *
    * @param {array} data Array of data objects.
    * [
@@ -422,7 +436,7 @@ $.widget("custom.barView", {
       }
     }
 
-    this._dataRange = (dataMax.key - dataMin.key) + 1;
+    this._dataWidth = (dataMax.key - dataMin.key);
     this._dataOffset = dataMin.key;
 
     return data;
@@ -473,11 +487,11 @@ $.widget("custom.barView", {
 
     for (i = 0, len = this.options.data.length; i < len; i += 1) {
       if ($.type(this.options.data[i]) === "array") {
-        x = this._dataIndexToDisplayIndex(this.options.data[i][0].key);
+        x = this._dataValueToDisplayX(this.options.data[i][0].key);
         y = ((1 / this._dataMaxDepth) * this.options.data[i].length) * this._height;
         label = this.options.data[i].length.toString();
       } else {
-        x = this._dataIndexToDisplayIndex(this.options.data[i].key);
+        x = this._dataValueToDisplayX(this.options.data[i].key);
         y = ((1 / this._dataMaxDepth))  * this._height;
         label = "1";
       }
