@@ -531,30 +531,50 @@ $.widget("custom.barView", {
    * ToDo Refactor to pass data indexes instead of slicing data and passing a whole
    * other array when recursing
    *
-   * @param {type} key
+   * @param {string} key
+   * @param {array} data
+   * @param {integer} start
+   * @param {integer} end
    * @returns {Number}
    */
-  _find: function (key, data, result) {
-    let result = [-1],
+  _find: function (key, data, start, end) {
+    let leftStart, leftEnd, rightStart, rightEnd,
       oKey = {"key": key};
 
-    if (!data.length) {
-      return result[0];
+    if (data.length === 0) {
+      return -1;
     }
 
-    if (data.length === 1) {
-      if (this._dataCompare(oKey, data[0])) {
-        return result[0]; // found
+    if (typeof start === 'undefined') {
+      start = 0;
+    }
+
+    if (typeof end === 'undefined') {
+      end = data.length - 1;
+    }
+
+    if (start === end) {
+      if (this._dataCompare(oKey, data[start]) === 0) {
+        return start; // found
       } else {
-        return result[0]; // not found
+        return -1; // not found
       }
     }
 
+    leftEnd = Math.floor(end - start / 2 ) - 1;
+
+    let cmp = this._dataCompare(oKey, data[leftEnd]);
+
     // keep looking
-    if (this._dataCompare(oKey, data[0])) {
-      return this._find(oKey, slice(0, Math.floor(data.length / 2)));
-    } else  {
-      return this._find(oKey, slice(Math.floor(data.length / 2 + 1)));
+    if (cmp === 0) {
+      return leftEnd;
+    } else if (cmp < 0) {
+      leftStart = start;
+      return this._find(oKey.key, data, leftStart, leftEnd);
+    } else {
+      rightStart = leftEnd + 1;
+      rightEnd = end;
+      return this._find(oKey.key, data, rightStart, rightEnd);
     }
   },
 

@@ -370,4 +370,36 @@ QUnit.test("Test option data - set", function(assert) {
   assert.notStrictEqual(svgElementPre.attr('id'), svgElementPost.attr('id'), "Set data to [] should clear/trigger a redraw");
 });
 
+/**
+ *
+ */
+QUnit.test("Test find", function(assert) {
+
+  // key 1 is aggregated
+  let result,
+    testData = [
+      {'key':0, 'value': 0},
+      [
+        {'key':1, 'value': 1},
+        {'key':1, 'value': 2}
+      ],
+      {'key':3, 'value': 3}
+    ];
+
+  result = this.myBarView._find(0, []);
+  assert.strictEqual(result, -1, "Find on an empty arrays returns 'not found'");
+
+  result = this.myBarView._find(42, testData);
+  assert.strictEqual(result, -1, "Find on non existant key returns 'not found'");
+
+  result = this.myBarView._find(0, testData);
+  assert.strictEqual(result, 0, "Finding an existant item at index 0 returns 'found'");
+
+  result = this.myBarView._find(1, testData);
+  assert.strictEqual(result, 1, "Finding an existant item at index n returns 'found'");
+
+  result = this.myBarView._find(3, testData);
+  assert.strictEqual(result, 2, "Finding an existant item at last index returns 'found'");
+});
+
 // end file
