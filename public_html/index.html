@@ -16,7 +16,6 @@ jQuery Timeline-control Widget
     <script src="vendor/jquery.js"></script>
     <script src="vendor/jquery-ui.js"></script>
     <script src="vendor/d3.js"></script>
-    <script src="js/timeline.js"></script>
     <script src="js/barView.js"></script>
     <script src="js/barViewConstraint.js"></script>
     <script>
@@ -113,83 +112,25 @@ jQuery Timeline-control Widget
         console.log("documentReady");
 
         //
-        // setup the data contraint view
-        //
-
-        // alternate widget initialization syntax
-        // var bar = $.custom.progressbar({}, $("<div></div>").appendTo("body"));
-
-//        let widgetElement1 = $("#widgetElement1");
-//
-//        // construct a timeline widget in the widgetElement2 element. We pass
-//        // in a custom handler for the atstart' custom event.
-//        widgetElement1.timeline({
-//          // the widget defaults to using the widgetElement height, which is not set,
-//          // so provide an explict height.
-//          height: '50px',
-//          data: testData10
-//        });
-//
-//        // Alternate way of calling widget methods by calling object and passing in func name
-//        //console.log("Initial value: " + widgetElement.timeline("value"));
-//
-//        let dataConstraint = widgetElement1.data("custom-timeline");
-//
-//        // Example of adding an additional event hander vs overriding the default.
-//        //
-//        // Notes:
-//        // 1) Custom handlers are called before the default.
-//        // 2) Returning false or using stopImmediatePropagation(), stopPropagation()
-//        // and preventDefault() does not seem to stop the default handler from firing?
-//        // 3) Context can be pass either by EMCMA5 'bind' or using jquery proxy().
-//        widgetElement1.on("timelinechange", (function (event, data) {
-//          console.log(this.widgetName + ".change - User defined chained handler. Key: '" + data.key  + "', Value: " + data.value);
-//        }).bind(dataConstraint));
-
-
-
-
-        //
         // setup the primary data view
         //
 
-        let widgetElement2 = $("#widgetElement2");
+        let widgetElement1 = $("#widgetElement1");
 
-        widgetElement2.barView({
-//          height: '48px',
-//          data: testData10,
-//          "change": function (event, data) {
-//            console.log(this.widgetName + '.change - #1 key: ' + data.key + ", old:" + data.oldValue + ", new:" + data.value);
-//          }
+        widgetElement1.barView({
+          height: '128px'
         });
 
-        let myBarView = widgetElement2.data("custom-barView");
-
-        myBarView.option('height', '120px');
-
-        // update the change handler
-        myBarView.option('change', function (event, data)  {
-            console.log(this.widgetName + '.change - #2 key: ' + data.key + ", old:" + data.oldValue + ", new:" + data.value);
-          });
-
-        // confirm change handler update + test auto redraw(?)
-        myBarView.option('cloneData', true);
-        myBarView.option('cloneData', true);
-        myBarView.option('cloneData', false);
-
-        myBarView.option('create', function (evt, data) { alert('hi'); });
-        myBarView.option('create', function (evt, data) { alert('hello'); });
-        myBarView.option('create', function (evt, data) { alert('hello'); });
+        let myBarView = widgetElement1.data("custom-barView");
 
         //
         // setup the primary data view constraint
         //
 
-//        let widgetElement3 = $("#widgetElement3");
-//
-//        widgetElement3.barViewConstraint({
-//          'height': '48px',
-//          'data': testData10,
+        let widgetElement2 = $("#widgetElement2");
+
+        widgetElement2.barViewConstraint({
+          'height': '64px',
 //          'afterWindowMove': function (event, data) {
 //            let selectValue, size, testData, newTestData, left, right;
 //
@@ -202,9 +143,69 @@ jQuery Timeline-control Widget
 //
 //            myBarView.option('data', newTestData);
 //          }
+        });
+
+        let myBarViewConstraint = widgetElement2.data("custom-barViewConstraint");
+
+        let selectionWindowUpdate = false;
+
+        // Notes:
+        // 1) Custom handlers using on() are called before/in addition to other handlers.
+        // 2) Returning false or using stopImmediatePropagation(), stopPropagation()
+        // and preventDefault() does not seem to stop the default handler from firing?
+        // 3) Context can be passed by bind(), using jquery proxy() or a closure. In the
+        // example below the use of bind() is not necessary.
+
+        //
+        // Update the secondary container if the primary containers data set changes.
+        //
+        widgetElement1.on('barviewchange', (function (event, data) {
+          if (data.key === "data") {
+
+            if (selectionWindowUpdate) {
+              return;
+            }
+
+            myBarViewConstraint.option('data', data.value);
+            console.log('Update myBarViewConstraint. The barView data option changed, via on().');
+          }
+        }));
+
+        // Notes:
+        // 1) Do not need bind, will automatically have widget context.
+        // 2) This redefines the handler. If a previous handler/functionality exists, it will be lost.
+//        myBarView.option('change', function (event, data) {
+//          if (data.key === "data") {
+//            console.log('Update myBarViewConstraint. The data option changed, via option().');
+//            myBarViewConstraint.option('data', data.value);
+//          }
 //        });
-//
-//        let myBarViewConstraint = widgetElement3.data("custom-barViewConstraint");
+
+        //
+        // Update the primary container after a selection window move
+        //
+        widgetElement2.on('barviewconstraintafterwindowmove', (function (event, data) {
+          let newData, left, right,
+            testData = data.context.option('data'),
+            start = data.value,
+            size = data.context.option('windowSize');
+
+          left = Math.ceil(start * testData.length),
+          right = Math.floor((start + size) * testData.length);
+
+console.log("left: " + left + ", right: " + right + ", length: " + testData.length);
+
+          newData = testData.slice(left, right);
+
+          selectionWindowUpdate = true;
+
+          myBarView.option('data', newData);
+
+          selectionWindowUpdate = false;
+
+          console.log('Update myBarView. The barViewConstraint windowStart/windowSize option changed, via option().');
+
+        }));
 
         //
         // Setup the load data UI
@@ -223,23 +224,11 @@ jQuery Timeline-control Widget
             testData = dataSets[idx];
           }
 
-//          try {
-//            dataConstraint.option('data', testData);
-//          } catch (e) {
-//            alert (e.message);
-//          }
-
           try {
             myBarView.option('data', testData);
           } catch (e) {
             alert (e.message);
           }
-
-//          try {
-//            myBarViewConstraint.option('data', testData);
-//          } catch (e) {
-//            alert (e.message);
-//          }
 
         }); // bGo1
 
@@ -247,15 +236,52 @@ jQuery Timeline-control Widget
         // Get option
         //
         $('#bGo2').on('click', function (event) {
-          let value;
+          let value, value1, value2, error, color,
+            option = $('#optionInput').val(),
+            optionInputVal = $('#optionInputVal');
+
+          optionInputVal.css('opacity', .25);
 
           try {
-            value = myBarView.option($('#optionInput').val());
+            if ($.inArray(option, Object.keys($.custom.barView.prototype.options)) !== -1) {
+              value1 = myBarView.option(option);
+            }
+
+            if ($.inArray(option, Object.keys($.custom.barViewConstraint.prototype.options)) !== -1) {
+              value2 = myBarViewConstraint.option(option);
+            }
+
+            error = (typeof value1 === 'undefined' && typeof value2 === 'undefined') ? true : false;
+
           } catch (e) {
             alert (e.message);
+            error = true;
           }
 
-          $('#optionInputVal').val(value);
+          if (error) {
+            $('#indicator').css('backgroundColor', 'red');
+          } else {
+            color = 'green';
+
+            if (typeof value1 !== 'undefined' && typeof value2 !== 'undefined') {
+              value = value1 + ' / ' + value2;
+            } else if (typeof value1 !== 'undefined') {
+              value = value1;
+            } else if (typeof value2 !== 'undefined') {
+              value = value2;
+            } else {
+              alert('Error - one or the other should have option key ' + option);
+              color = 'red';
+            }
+
+            $('#indicator').css('backgroundColor', color);
+          }
+
+          optionInputVal.fadeTo(3000, 1);
+
+          if (!error) {
+            $('#optionInputVal').val(value);
+          }
         });
 
         //
@@ -268,14 +294,22 @@ jQuery Timeline-control Widget
 
           value = $.trim(optionInputVal.val());
 
-          if (option === 'width') {
+          // for bool options, convert input to a proper boolean
+          if (option === 'cloneData') {
             value = (value === "0" || value.toLowerCase() === "false") ? false : true;
           }
 
           optionInputVal.css('opacity', .25);
 
           try {
-            value = myBarView.option(option, value);
+            if ($.inArray(option, Object.keys($.custom.barView.prototype.options)) !== -1) {
+              myBarView.option(option, value);
+            }
+
+            if ($.inArray(option, Object.keys($.custom.barViewConstraint.prototype.options)) !== -1) {
+              myBarViewConstraint.option(option, value);
+            }
+
             $('#indicator').css('backgroundColor', 'green');
             error = false;
           } catch (e) {
@@ -299,12 +333,11 @@ jQuery Timeline-control Widget
   <body>
     <div class="content">
       <div class="title-block">
-        <h1>Timeline Control Widget Test</h1>
+        <h1>Custom Widget Test</h1>
       </div>
 
       <div id="widgetElement1" class="widgetElement full"></div>
       <div id="widgetElement2" class="widgetElement full"></div>
-      <div id="widgetElement3" class="widgetElement full"></div>
 
       <div id="loadDataTest" class="test-selector-container">
         <select id="dataSet">
@@ -324,6 +357,9 @@ jQuery Timeline-control Widget
           <option value="width">Width (CSS)</option>
           <option value="height">Height (CSS)</option>
           <option value="cloneData" selected>cloneData (Bool)</option>
+          <option value="windowStart">windowStart (float)</option>
+          <option value="windowSize">windowSize (float)</option>
+          <option value="windowEnd">windowEnd (float)</option>
         </select>
         <div id="indicator">
           <input id="optionInputVal">
