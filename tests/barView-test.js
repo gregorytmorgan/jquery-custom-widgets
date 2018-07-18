@@ -3,7 +3,9 @@
 // Logging/TAP setup
 //
 
-var Tap = qunitTap(QUnit, function() {
+/* globals QUnit */
+
+let Tap = qunitTap(QUnit, function() {
     console.log.apply(console, arguments);
   },
   {
@@ -35,6 +37,7 @@ Tap.moduleStart = function(arg) {
 //
 //  //console.log( JSON.stringify( result, null, 2 ) );
 //} );
+
 
 QUnit.done(function( details ) {
   console.log("Total: ", details.total, " Failed: ", details.failed, " Passed: ", details.passed, " Runtime: ", details.runtime);
@@ -302,7 +305,7 @@ QUnit.test("Test option height - set", function(assert) {
 
   // need data to actually redraw, otherwise redraw skipped/svg so id doesn't change
   this.myBarView.option('data', [{'key':0, 'value': 0}]);
-  
+
   this.myBarView.option('height', cssValue);
 
   // chk the actual option value
@@ -323,6 +326,7 @@ QUnit.test("Test option height - set", function(assert) {
  *
  */
 QUnit.test("Test option data - set", function(assert) {
+  let testData0 = [];
 
   let testData3 = [
     {'key':0, 'value': 0},
@@ -340,7 +344,7 @@ QUnit.test("Test option data - set", function(assert) {
   ];
 
   // get the svg id before set data
-  let svgElement1 = this.myBarView._container.find('svg.dataBg');
+  let svgElementPre = this.myBarView._container.find('svg.dataBg');
 
   // copy testData3 before calling set data
   let preTestData3 = JSON.stringify(testData3);
@@ -357,8 +361,13 @@ QUnit.test("Test option data - set", function(assert) {
   assert.deepEqual(this.myBarView.options.data, testData3Expected, "Set data should aggregate like keys");
 
   // the svg element id should have changed
-  let svgElement2 = this.myBarView._container.find('svg.dataBg');
-  assert.notStrictEqual(svgElement1.attr('id'), svgElement2.attr('id'), "Set data should trigger a redraw");
+  let svgElementPost = this.myBarView._container.find('svg.dataBg');
+  assert.notStrictEqual(svgElementPre.attr('id'), svgElementPost.attr('id'), "Set data should trigger a redraw");
+
+  svgElementPre = this.myBarView._container.find('svg.dataBg');
+  this.myBarView.option('data', testData0);
+  svgElementPost = this.myBarView._container.find('svg.dataBg');
+  assert.notStrictEqual(svgElementPre.attr('id'), svgElementPost.attr('id'), "Set data to [] should clear/trigger a redraw");
 });
 
 // end file

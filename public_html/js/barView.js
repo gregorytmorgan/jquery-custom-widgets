@@ -38,9 +38,9 @@
 $.widget("custom.barView", {
 
   /**
-   * if data = [4, 12 20], then the data range is (20 - 4)
+   * if data = [4, 12 20], then the data width is (20 - 4)
    */
-  _dataWidth: undefined,
+  _dataRange: undefined,
 
   /**
    * if data = [4, 12 20], then the offset is 4.
@@ -166,13 +166,12 @@ $.widget("custom.barView", {
    *
    */
 
-  /**
+  /*
    * Constructor
    *
-   * @returns {undefined}
    */
   _create: function () {
-    var key;
+    let key;
 
     this._super();
 
@@ -341,21 +340,31 @@ $.widget("custom.barView", {
   },
 
   /**
-   * Return the ratio between the widget display width and the data range.
+   * Return the ratio between the widget display width and the data width.
    *
    * @returns {float}
    * @throws Exception
    */
   _displayFactor: function () {
-    if (!this._width) {
+    if (typeof this._width === 'undefined') {
       throw new Error('Invalid display width');
     }
 
-    if (!this._dataWidth) {
-      throw new Error('Invalid data range');
+    if (this._width - this._preRelief - this._postRelief < 1) {
+      throw new Error('Invalid display width. Width is less than relief');
     }
 
-    return (this._preRelief + this._width + this._preRelief) / this._dataWidth;
+    // a data width of 0 is valid: there is only one data point
+    if (typeof this._dataRange === 'undefined') {
+      throw new Error('Invalid data width');
+    }
+
+    // a dataRange of 0 is a single data point
+    if (this._dataRange === 0) {
+      return (this._width - this._preRelief - this._postRelief);
+    } else {
+      return (this._width - this._preRelief - this._postRelief) / this._dataRange;
+    }
   },
 
   /**
@@ -383,7 +392,7 @@ $.widget("custom.barView", {
    *
    * 1) Sorts data by key.
    * 3) Aggregates duplicate keys
-   * 3) Discovers _dataMaxDepth, _dataWidth, _dataOffset
+   * 3) Discovers _dataMaxDepth, _dataRange, _dataOffset
    *
    * @param {array} data Array of data objects.
    * [
@@ -398,7 +407,10 @@ $.widget("custom.barView", {
 
     this._dataMaxDepth = 1;
 
-    if (!data.length) {
+    if (data.length === 0) {
+      this._dataRange = 0;
+      this._dataOffset = 0;
+      this._dataMaxDepth = 0;
       return data;
     }
 
@@ -436,7 +448,7 @@ $.widget("custom.barView", {
       }
     }
 
-    this._dataWidth = (dataMax.key - dataMin.key);
+    this._dataRange = (dataMax.key - dataMin.key);
     this._dataOffset = dataMin.key;
 
     return data;
@@ -476,7 +488,7 @@ $.widget("custom.barView", {
     // triggers a redraw even when there is no data
     this._isModified = false;
 
-    if (!this.options.data.length) {
+    if (typeof this.options.data === 'undefined') {
       return;
     }
 
@@ -489,11 +501,11 @@ $.widget("custom.barView", {
       if ($.type(this.options.data[i]) === "array") {
         x = this._dataValueToDisplayX(this.options.data[i][0].key);
         y = ((1 / this._dataMaxDepth) * this.options.data[i].length) * this._height;
-        label = this.options.data[i].length.toString();
+        label = this.options.data[i][0].key + " (" + this.options.data[i].length.toString() + ")";
       } else {
         x = this._dataValueToDisplayX(this.options.data[i].key);
         y = ((1 / this._dataMaxDepth))  * this._height;
-        label = "1";
+        label = this.options.data[i].key + " (1)";
       }
 
       d3svg.append("line")
@@ -513,6 +525,37 @@ $.widget("custom.barView", {
     return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
       (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
     )
+  },
+
+  /**
+   * ToDo Refactor to pass data indexes instead of slicing data and passing a whole
+   * other array when recursing
+   *
+   * @param {type} key
+   * @returns {Number}
+   */
+  _find: function (key, data, result) {
+    let result = [-1],
+      oKey = {"key": key};
+
+    if (!data.length) {
+      return result[0];
+    }
+
+    if (data.length === 1) {
+      if (this._dataCompare(oKey, data[0])) {
+        return result[0]; // found
+      } else {
+        return result[0]; // not found
+      }
+    }
+
+    // keep looking
+    if (this._dataCompare(oKey, data[0])) {
+      return this._find(oKey, slice(0, Math.floor(data.length / 2)));
+    } else  {
+      return this._find(oKey, slice(Math.floor(data.length / 2 + 1)));
+    }
   },
 
   /**
