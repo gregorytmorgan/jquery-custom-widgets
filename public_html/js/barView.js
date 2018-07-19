@@ -56,20 +56,6 @@ $.widget("custom.barView", {
   _dataMaxDepth: undefined,
 
   /**
-   * Numer of pixels of display relief - pre.
-   *
-   * @type {integer}
-   */
-  _preRelief: 10,
-
-  /**
-   * Numer of pixels of display relief - post.
-   *
-   * @type {integer}
-   */
-  _postRelief: 10,
-
-  /**
    * The width of the widget in pixels.
    *
    * @type {float}
@@ -141,6 +127,20 @@ $.widget("custom.barView", {
      * @type {boolean}
      */
     cloneData: true,
+
+    /**
+     * Numer of pixels of display relief - pre.
+     *
+     * @type {integer}
+     */
+    preRelief: 10,
+
+    /**
+     * Numer of pixels of display relief - post.
+     *
+     * @type {integer}
+     */
+    postRelief: 10,
 
     /**
      * Option change event handler.
@@ -236,9 +236,9 @@ $.widget("custom.barView", {
    * @returns {barViewAnonym$0@call;_superApply}
    */
   option: function (key, value) {
-    if (!this.options.hasOwnProperty(key)) {
-      throw new Error("Invalid option " + key);
-    }
+      if (!this.options.hasOwnProperty(key)) {
+        throw new Error("Invalid option " + key);
+      }
 
     return this._superApply(arguments);
   },
@@ -268,6 +268,22 @@ $.widget("custom.barView", {
         data = (this.options.cloneData) ? jQuery.extend(true, [], value) : value;
         this._isModified = true;
         this.options.data = this._preprocessData(data);
+        break;
+      case "preRelief":
+        value = parseInt(value);
+        if (isNaN(value) || value < 0) {
+          throw new Error("Invalid preRelief value: " + value);
+        }
+        this._isModified = true;
+        this.options.preRelief = value;
+        break;
+      case "postRelief":
+        value = parseInt(value);
+        if (isNaN(value) || value < 0) {
+          throw new Error("Invalid postRelief value: " + value);
+        }
+        this._isModified = true;
+        this.options.postRelief = value;
         break;
       case "width":
         this._container.css({width: value});
@@ -350,7 +366,7 @@ $.widget("custom.barView", {
       throw new Error('Invalid display width');
     }
 
-    if (this._width - this._preRelief - this._postRelief < 1) {
+    if (this._width - this.options.preRelief - this.options.postRelief < 1) {
       throw new Error('Invalid display width. Width is less than relief');
     }
 
@@ -361,9 +377,9 @@ $.widget("custom.barView", {
 
     // a dataRange of 0 is a single data point
     if (this._dataRange === 0) {
-      return (this._width - this._preRelief - this._postRelief);
+      return (this._width - this.options.preRelief - this.options.postRelief);
     } else {
-      return (this._width - this._preRelief - this._postRelief) / this._dataRange;
+      return (this._width - this.options.preRelief - this.options.postRelief) / this._dataRange;
     }
   },
 
@@ -374,7 +390,7 @@ $.widget("custom.barView", {
    * @returns {float}
    */
   _dataValueToDisplayX: function (value) {
-    return ((value - this._dataOffset) * this._displayFactor()) + this._preRelief;
+    return ((value - this._dataOffset) * this._displayFactor()) + this.options.preRelief;
   },
 
   /**
