@@ -236,9 +236,21 @@ $.widget("custom.barView", {
    * @returns {barViewAnonym$0@call;_superApply}
    */
   option: function (key, value) {
+    let k;
+
+    if ($.type(key) === "string") {
       if (!this.options.hasOwnProperty(key)) {
         throw new Error("Invalid option " + key);
       }
+    } else if ($.type(key) === "object") {
+      for (k in key) {
+        if (!this.options.hasOwnProperty(k)) {
+          throw new Error("Invalid option " + k);
+        }
+      }
+    } else {
+      throw new Error("Invalid option " + key);
+    }
 
     return this._superApply(arguments);
   },

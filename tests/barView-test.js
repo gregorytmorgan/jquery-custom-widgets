@@ -156,6 +156,40 @@ QUnit.test("Test invalid options", function(assert) {
 });
 
 /**
+ *
+ */
+QUnit.test("Test setting multiple options", function(assert) {
+  let result,
+    invalidOptionName = 'dummy_invalid_option',
+    expectedWidth = '1000px',
+    expectedCloneData = !$.custom.barView.prototype.options.cloneData;
+
+  // test valid options
+  this.myBarView.option({
+    'cloneData': expectedCloneData,
+    'width': expectedWidth
+  });
+
+  result = this.myBarView.option('cloneData');
+  assert.strictEqual(result, expectedCloneData, "Setting multiple option - cloneData");
+
+  result = this.myBarView.option('width');
+  assert.strictEqual(result, expectedWidth, "Setting multiple option - width");
+
+  // test invalid option
+  assert.throws(
+    function () {
+      this.myBarView.option({
+        'cloneData': expectedCloneData,
+        'dummy_invalid_option': 1
+      });
+    },
+    new Error("Invalid option " + invalidOptionName),
+    "Setting an invalid option should throw an exception"
+  );
+});
+
+/**
  * Helper function. Dynamically generate a custom test function for each option
  * tested. Used by the "Test option change events" test.
  *
@@ -178,6 +212,8 @@ function createChangeHandler(newValue, oldValue, assert) {
 /*
  * For each non function option verify a change event is triggered and the event
  * contains correct new/old values.
+ *
+ * The actual asserts are in the assigned event handler
  */
 QUnit.test("Test option change events", function(assert) {
   let newValue, oldValue;
