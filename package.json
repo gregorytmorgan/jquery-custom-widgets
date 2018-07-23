@@ -1,0 +1,34 @@
+{
+  "name": "jquery-custom-widgets",
+  "version": "1.0.0",
+  "keywords": [
+    "util",
+    "functional",
+    "server",
+    "client",
+    "browser"
+  ],
+  "author": "gmorgan",
+  "contributors": [],
+  "jshintConfig": ".jshintrc",
+  "dependencies": {},
+  "devDependencies": {
+    "fancy-log": "^1.3.2",
+    "gulp": "^3.9.1",
+    "gulp-qunit": "^2.0.1",
+    "jquery": "^3.3.1",
+    "jquery-ui": "^1.12.1",
+    "jshint": "^2.9.5",
+    "karma": "^2.0.4",
+    "karma-chrome-launcher": "^2.2.0",
+    "karma-firefox-launcher": "^1.1.0",
+    "karma-jquery": "^0.2.3",
+    "karma-phantomjs-launcher": "^1.0.4",
+    "karma-qunit": "^2.1.0",
+    "mocha": "^5.2.0",
+    "node-qunit-phantomjs": "^2.0.0",
+    "qunit": "^2.6.1",
+    "qunit-tap": "^1.5.1",
+    "qunitjs": "^2.4.1"
+  }
+}

@@ -1,0 +1,13 @@
+//
+// 
+//
+  
+
+"globals": {
+  "$": true,
+  "jQuery": true,
+  "QUnit": true
+}
+
+
+// end file
