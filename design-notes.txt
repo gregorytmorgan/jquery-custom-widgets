@@ -50,6 +50,19 @@ This approach uses a karma config file with singleRun:true.  This config current
 outputs to the terminal, but it's possible to start a browser instance as well.
 
 
+Events
+===============================
+Typically event data has 'value', 'oldValue' and 'context' keys.
 
+Change events also have a 'key' key.
+
+For barViewConstraint selection window start/drag/stop events:
+  - In a start event, 'value' key represents windowStart, oldValue will equal value.
+  - For drag events, 'value' represents the current position, oldValue will not change
+    until the stop event.
+  - Stop events provide a 'value' of the new windowStart and an oldValue of the
+    windowStart before the drag.
+
+Resize events value/oldValue are in the form of {x, y}
 
 // end file
