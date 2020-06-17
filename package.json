@@ -11,23 +11,24 @@
   "author": "gmorgan",
   "contributors": [],
   "jshintConfig": ".jshintrc",
-  "dependencies": {},
+  "dependencies": {
+    "jquery-ui": "^1.12.1",
+    "jshint": "^2.11.1"
+  },
   "devDependencies": {
     "fancy-log": "^1.3.3",
     "gulp": "^4.0.2",
     "gulp-qunit": "^2.1.1",
-    "jquery": "^3.5.0",
-    "jquery-ui": "^1.12.1",
-    "jshint": "^2.11.0",
-    "karma": "^5.0.2",
+    "jquery": "^3.5.1",
+    "karma": "^5.1.0",
     "karma-chrome-launcher": "^2.2.0",
     "karma-firefox-launcher": "^1.3.0",
     "karma-jquery": "^0.2.4",
     "karma-phantomjs-launcher": "^1.0.4",
     "karma-qunit": "^2.1.0",
-    "mocha": "^7.1.2",
-    "node-qunit-phantomjs": "^2.0.0",
-    "qunit": "^2.9.3",
+    "mocha": "^7.2.0",
+    "node-qunit-phantomjs": "^2.1.1",
+    "qunit": "^2.10.0",
     "qunit-tap": "^1.5.1",
     "qunitjs": "^2.4.1"
   }
